@@ -7,7 +7,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { User } from "@/types/user"
+import type { User } from "@/types/user"
 import { Badge } from "@/components/ui/badge"
 
 interface UserCardProps {

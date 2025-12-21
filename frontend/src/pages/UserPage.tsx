@@ -9,7 +9,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { User, UserPayload } from "@/types/user"
+import type { User, UserPayload } from "@/types/user"
 import { SearchBar } from "@/components/molecules/SearchBar"
 import { UserForm } from "@/components/molecules/UserForm"
 import { UserGrid } from "@/components/organisms/UserGrid"

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { User, UserPayload } from "@/types/user"
+import type { User, UserPayload } from "@/types/user"
 
 interface UserFormProps {
     initialData?: User
