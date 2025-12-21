@@ -8,13 +8,13 @@ interface SearchBarProps {
 
 export function SearchBar({ value, onChange }: SearchBarProps) {
     return (
-        <div className="relative w-full max-w-xl group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <div className="relative w-full max-w-lg group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
             <Input
-                placeholder="Search users by name or email..."
+                placeholder="Search users..."
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="pl-11 pr-4 py-6 bg-card border-border/50 hover:border-primary/50 focus-visible:ring-primary/20 rounded-2xl shadow-sm transition-all text-lg"
+                className="pl-9 pr-4 py-2 h-9 bg-input border-border/40 hover:border-primary/30 focus-visible:ring-primary/10 rounded-md transition-all text-sm"
             />
         </div>
     )

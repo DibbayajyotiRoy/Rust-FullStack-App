@@ -17,15 +17,25 @@ export function UserGrid({ users, onEdit, onDelete }: UserGridProps) {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {users.map((user) => (
-                <UserCard
-                    key={user.id}
-                    user={user}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                />
-            ))}
+        <div className="w-full">
+            {/* Header labels for alignment */}
+            <div className="flex items-center px-4 mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                <div className="w-[240px] shrink-0">Name</div>
+                <div className="w-[300px] shrink-0">Email</div>
+                <div className="w-[140px] shrink-0">Joined</div>
+                <div className="flex-1">Status / ID</div>
+            </div>
+
+            <div className="flex flex-col border border-border/40 rounded-lg overflow-hidden bg-card/30">
+                {users.map((user) => (
+                    <UserCard
+                        key={user.id}
+                        user={user}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                    />
+                ))}
+            </div>
         </div>
     )
 }

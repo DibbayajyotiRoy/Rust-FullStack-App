@@ -96,32 +96,32 @@ export default function UserManagementPage() {
     )
 
     return (
-        <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="min-h-screen bg-background text-foreground transition-colors duration-300 antialiased">
+            <div className="max-w-5xl mx-auto px-6 py-8">
                 {/* Header Section */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
-                    <div className="flex items-center gap-4">
-                        <div className="bg-primary/10 p-4 rounded-3xl">
-                            <Users className="h-8 w-8 text-primary" />
+                <header className="flex justify-between items-center mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="bg-primary/10 p-2.5 rounded-xl">
+                            <Users className="h-5 w-5 text-primary/80" />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black tracking-tighter">Directory</h1>
-                            <p className="text-muted-foreground font-medium">Manage your team and their permissions.</p>
+                            <h1 className="text-xl font-bold tracking-tight">User Directory</h1>
+                            <p className="text-[12px] text-muted-foreground/60 font-medium">Manage organization members and roles.</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center gap-2">
                         <ThemeToggle />
                         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button className="rounded-2xl px-6 py-6 h-auto text-lg font-bold gap-2 shadow-lg shadow-primary/20">
-                                    <Plus className="h-5 w-5" />
+                                <Button size="sm" className="rounded-md px-4 h-8 text-xs font-bold gap-2 shadow-sm">
+                                    <Plus className="h-3.5 w-3.5" />
                                     Add User
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-md rounded-3xl border-border/40">
-                                <DialogHeader>
-                                    <DialogTitle className="text-2xl font-black tracking-tight">Add New User</DialogTitle>
+                            <DialogContent className="sm:max-w-[400px] rounded-xl border-border/40 p-4">
+                                <DialogHeader className="mb-2">
+                                    <DialogTitle className="text-lg font-bold tracking-tight">Create User</DialogTitle>
                                 </DialogHeader>
                                 <UserForm onSubmit={handleAddUser} onCancel={() => setIsAddDialogOpen(false)} />
                             </DialogContent>
@@ -129,19 +129,22 @@ export default function UserManagementPage() {
                     </div>
                 </header>
 
-                {/* Search Section */}
-                <div className="flex justify-center mb-12">
+                {/* Utility Bar */}
+                <div className="flex items-center justify-between mb-6 gap-4 border-b border-border/10 pb-6">
                     <SearchBar value={searchTerm} onChange={setSearchTerm} />
+                    <div className="text-[11px] font-mono text-muted-foreground/40 whitespace-nowrap">
+                        {filteredUsers.length} TOTAL USERS
+                    </div>
                 </div>
 
                 {/* Main Content */}
                 {isLoading ? (
-                    <div className="flex flex-col justify-center items-center p-24 gap-4">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                        <p className="text-muted-foreground animate-pulse font-medium">Syncing with database...</p>
+                    <div className="flex flex-col justify-center items-center p-12 gap-3">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary/50"></div>
+                        <p className="text-[11px] text-muted-foreground/50 font-mono tracking-widest uppercase">Syncing...</p>
                     </div>
                 ) : (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="animate-in fade-in duration-500">
                         <UserGrid
                             users={filteredUsers}
                             onEdit={setEditingUser}
@@ -152,9 +155,9 @@ export default function UserManagementPage() {
 
                 {/* Edit Dialog */}
                 <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-                    <DialogContent className="sm:max-w-md rounded-3xl border-border/40">
-                        <DialogHeader>
-                            <DialogTitle className="text-2xl font-black tracking-tight">Edit User Profile</DialogTitle>
+                    <DialogContent className="sm:max-w-[400px] rounded-xl border-border/40 p-4">
+                        <DialogHeader className="mb-2">
+                            <DialogTitle className="text-lg font-bold tracking-tight">Update Profile</DialogTitle>
                         </DialogHeader>
                         {editingUser && (
                             <UserForm

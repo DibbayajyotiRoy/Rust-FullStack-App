@@ -45,7 +45,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --background: #FCFCF5;
   --foreground: #1A1A1A;
   --card: #FFFFFF;
@@ -57,30 +57,17 @@
   --secondary: #E2E2D1;
   --secondary-foreground: #1A1A1A;
   --muted: #F2F2E9;
-  --muted-foreground: #666666;
-  --accent: #E2E2D1;
-  --accent-foreground: #1A1A1A;
+  --muted-foreground: #71717A;
+  --accent: #F4F4F5;
+  --accent-foreground: #18181B;
   --destructive: oklch(0.577 0.245 27.325);
   --border: #E2E2D1;
   --input: #E2E2D1;
   --ring: #5865F2;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: #F2F2E9;
-  --sidebar-foreground: #1A1A1A;
-  --sidebar-primary: #5865F2;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E2E2D1;
-  --sidebar-accent-foreground: #1A1A1A;
-  --sidebar-border: #E2E2D1;
-  --sidebar-ring: #5865F2;
 }
 
 .dark {
-  --background: #313338;
+  --background: #1F2228;
   --foreground: #F2F3F5;
   --card: #2B2D31;
   --card-foreground: #F2F3F5;
@@ -88,29 +75,28 @@
   --popover-foreground: #F2F3F5;
   --primary: #5865F2;
   --primary-foreground: #FFFFFF;
-  --secondary: #383A40;
+  --secondary: #313338;
   --secondary-foreground: #F2F3F5;
   --muted: #2B2D31;
   --muted-foreground: #949BA4;
-  --accent: #35373C;
+  --accent: rgba(255, 255, 255, 0.04);
   --accent-foreground: #F2F3F5;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: #1E1F22;
-  --input: #1E1F22;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.05);
   --ring: #5865F2;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #2B2D31;
-  --sidebar-foreground: #F2F3F5;
-  --sidebar-primary: #5865F2;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #35373C;
-  --sidebar-accent-foreground: #F2F3F5;
-  --sidebar-border: #1E1F22;
-  --sidebar-ring: #5865F2;
+}
+
+@layer base {
+  * {
+    @apply border-border/50 outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
 }
 
 @layer base {
