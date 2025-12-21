@@ -1,0 +1,28 @@
+# Rust
+/rust-api/target
+/rust-api/.env
+
+# Node / React
+/frontend/node_modules
+/frontend/dist
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+
+# Vite
+/frontend/dist
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker / Environment
+.env
