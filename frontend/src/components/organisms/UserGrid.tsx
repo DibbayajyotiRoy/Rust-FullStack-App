@@ -17,24 +17,27 @@ export function UserGrid({ users, onEdit, onDelete }: UserGridProps) {
     }
 
     return (
-        <div className="w-full">
-            {/* Header labels for alignment */}
-            <div className="flex items-center px-4 mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
-                <div className="w-[240px] shrink-0">Name</div>
-                <div className="w-[300px] shrink-0">Email</div>
-                <div className="w-[140px] shrink-0">Joined</div>
-                <div className="flex-1">Status / ID</div>
-            </div>
+        <div className="w-full overflow-x-auto">
+            <div className="min-w-0 sm:min-w-[800px]">
+                {/* Header labels - Hidden on mobile, visible on desktop */}
+                <div className="hidden sm:grid grid-cols-[200px_1fr_140px_100px_80px] items-center px-4 mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                    <div>Name</div>
+                    <div>Email</div>
+                    <div>Joined</div>
+                    <div>ID</div>
+                    <div className="text-right">Actions</div>
+                </div>
 
-            <div className="flex flex-col border border-border/40 rounded-lg overflow-hidden bg-card/30">
-                {users.map((user) => (
-                    <UserCard
-                        key={user.id}
-                        user={user}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                    />
-                ))}
+                <div className="flex flex-col border border-border/40 rounded-lg overflow-hidden bg-card/30">
+                    {users.map((user) => (
+                        <UserCard
+                            key={user.id}
+                            user={user}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     )

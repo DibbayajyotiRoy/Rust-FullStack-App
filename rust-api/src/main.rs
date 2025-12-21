@@ -16,7 +16,6 @@ struct UserPayload {
     username: String,
     email: String,
     password_hash: String,
-    created_at: Option<String>,
 }
 
 #[derive(Serialize, FromRow)]
@@ -121,15 +120,17 @@ async fn update_user(
     Json(payload): Json<UserPayload>,
 ) -> Result<Json<User>, StatusCode> {
     sqlx::query_as::<_, User>(
-        "UPDATE users SET username = $1, email = $2, created_at = $3 WHERE id = $4 RETURNING *",
+        "UPDATE users SET username = $1, email = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *",
     )
     .bind(&payload.username)
     .bind(&payload.email)
-    .bind(&payload.created_at)
     .bind(id)
     .fetch_one(&pool).await
     .map(Json)
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+    .map_err(|e| {
+        eprintln!("Update error: {:?}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })
 }
 
 //DELETE A USER BY ID

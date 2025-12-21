@@ -96,15 +96,36 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-  }
-}
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+    /* Custom Scrollbar Styles */
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #E2E2D1;
+      border-radius: 5px;
+      border: 3px solid var(--background);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: #D1D1C2;
+    }
   }
 
-  body {
-    @apply bg-background text-foreground;
+  .dark body {
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border: 3px solid #1F2228;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
   }
 }
