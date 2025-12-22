@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import UserPage from './pages/UserPage.tsx'
 import SettingsPage from './pages/SettingsPage.tsx'
+import DashboardPage from './pages/DashboardPage.tsx'
 
 const router = createBrowserRouter([
   {
@@ -13,7 +14,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: 'dashboard',
-        element: <div>Dashboard Coming Soon</div>
+        element: <DashboardPage />
       },
       {
         path: 'users',
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
       },
       {
         index: true,
-        element: <UserPage />
+        element: <DashboardPage />
       }
     ]
   }

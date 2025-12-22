@@ -1,4 +1,4 @@
-import { MoreHorizontal, Pencil, Trash2, Mail, User as UserIcon } from "lucide-react"
+import { Pencil, Trash2, Mail, User as UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -52,12 +52,16 @@ export function UserCard({ user, onEdit, onDelete }: UserCardProps) {
                 <code className="text-[10px] font-mono text-muted-foreground/30 truncate pt-0.5">#{user.id.split('-')[0]}</code>
             </div>
 
-            {/* Actions (Anchored Right, Baseline aligned, Intent-based Opacity) */}
-            <div className="flex items-start justify-end pr-1 opacity-40 group-hover:opacity-100 transition-opacity">
+            {/* Actions - Pencil icon on hover (Mobile and Desktop) */}
+            <div className="flex items-start justify-end pr-1 sm:pr-0">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm hover:bg-muted/80 transition-colors">
-                            <MoreHorizontal className="h-3.5 w-3.5" />
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 rounded-sm opacity-0 group-hover:opacity-100 hover:bg-muted/80 transition-all"
+                        >
+                            <Pencil className="h-3.5 w-3.5" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-40 rounded-lg border-border/40 shadow-xl bg-card">
