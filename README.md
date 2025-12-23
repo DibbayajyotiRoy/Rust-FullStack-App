@@ -1,242 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Management System - Documentation</title>
-    <style>
-        :root {
-            --color-primary: #1e40af; /* Tailwind blue-700 */
-            --color-secondary: #f97316; /* Tailwind orange-600 */
-            --color-text: #1f2937; /* Tailwind gray-800 */
-            --color-bg: #ffffff;
-            --color-code-bg: #1f2937; /* Tailwind gray-800 */
-            --color-code-text: #f3f4f6; /* Tailwind gray-100 */
-            --color-border: #e5e7eb; /* Tailwind gray-200 */
-            --color-copy-bg: #374151; /* Tailwind gray-700 */
-            --color-copy-hover: #4b5563; /* Tailwind gray-600 */
-            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            --font-mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
-        }
+<!-- 
+NOTE: Standard Markdown files (.md) do not natively contain CSS. 
+The styling (CSS) for this document is applied by the renderer (e.g., GitHub, VS Code preview, or a website generator) 
+that converts the Markdown to HTML. Below is the full content in pure Markdown format. 
+-->
 
-        body {
-            font-family: var(--font-main);
-            color: var(--color-text);
-            background-color: var(--color-bg);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-        }
+<!-- ========================= -->
+<!--  Employee Management System  -->
+<!-- ========================= -->
 
-        .container {
-            width: 100%;
-            max-width: 960px;
-            padding: 40px 24px;
-        }
+<h1 align="center">🧑‍💼 Employee Management System</h1>
 
-        /* --- Header & Title --- */
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 2px solid var(--color-border);
-            padding-bottom: 20px;
-        }
+<p align="center">
+  <b>A production-ready full-stack Employee Management System</b><br/>
+  Built with a <b>Rust server-side backend</b> and a modern React frontend.
+</p>
 
-        h1 {
-            font-size: 2.5rem;
-            color: var(--color-primary);
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-        }
+<p align="center">
+  <img src="https://img.shields.io/badge/Backend-Rust-orange?style=flat-square" alt="Backend: Rust" />
+  <img src="https://img.shields.io/badge/Framework-Axum-blue?style=flat-square" alt="Framework: Axum" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-336791?style=flat-square" alt="Database: PostgreSQL" />
+  <img src="https://img.shields.io/badge/Frontend-React-61DAFB?style=flat-square" alt="Frontend: React" />
+  <img src="https://img.shields.io/badge/Runtime-Docker-black?style=flat-square" alt="Runtime: Docker" />
+</p>
 
-        h1 .emoji {
-            font-size: 3rem;
-            margin-right: 10px;
-            vertical-align: middle;
-        }
+---
 
-        .subtitle {
-            font-size: 1.15rem;
-            color: #4b5563; /* Tailwind gray-600 */
-            margin-top: 0;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+## 📌 Overview
 
-        /* --- Badges --- */
-        .badges {
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 40px;
-        }
+This project is a **full-stack Employee Management System (EMS)** designed with
+**scalability, maintainability, and production-readiness** in mind.
 
-        .badges img {
-            margin: 5px;
-            height: 24px;
-            vertical-align: middle;
-        }
+- **Backend**: Rust (Axum) – server-side rendered API & static frontend serving  
+- **Frontend**: React + Tailwind + shadcn/ui  
+- **Database**: PostgreSQL  
+- **Deployment**: Docker & Docker Compose  
 
-        /* --- Headings --- */
-        h2 {
-            font-size: 1.875rem;
-            color: var(--color-text);
-            border-bottom: 1px solid var(--color-border);
-            padding-bottom: 0.3em;
-            margin-top: 3.5rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
+The backend serves both:
+- REST APIs under `/api/*`
+- The compiled frontend SPA from the same origin
 
-        h3 {
-            font-size: 1.5rem;
-            color: var(--color-primary);
-            margin-top: 2.5rem;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
+👉 **No CORS. No proxy hacks. Clean architecture.**
 
-        /* --- Content & Typography --- */
-        p, ul, ol {
-            margin-bottom: 1.25rem;
-        }
+---
 
-        a {
-            color: var(--color-primary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
+## 🏗 Architecture
 
-        a:hover {
-            color: var(--color-secondary);
-            text-decoration: underline;
-        }
-        
-        strong {
-            font-weight: 600;
-        }
 
-        /* --- Code Block Styling (with Copy Button) --- */
-        .code-container {
-            position: relative;
-            margin-top: 1rem;
-            margin-bottom: 1.5rem;
-        }
+graph TD
+    A[Frontend: React + Tailwind + shadcn/ui] -->|same-origin| B(Rust Backend: Axum • SQLx • Tokio);
+    B --> C[PostgreSQL DB];
+    subgraph Rust Backend
+        B1[/api/* → REST endpoints]
+        B2[/* → React SPA]
+    end
+    B -.-> B1
+    B -.-> B2
+(Note: The above diagram uses the Mermaid syntax for modern Markdown viewers like GitHub.)
+⚙️ Backend (Rust – Server Side)
+Tech Stack
+Rust
+Axum – HTTP server & routing
+SQLx – async PostgreSQL driver
+Tokio – async runtime
+UUID – primary keys
+Docker – containerized runtime
+Key Backend Features
+Modular architecture (models, services, handlers, routes)
+Runtime-safe SQL (Docker-compatible, no compile-time DB dependency)
+Shared application state via AppState
+SPA fallback routing (client-side routing works on refresh)
+Clean REST API design
+Example API Routes
+code
+Code
+GET /api/users
+POST /api/users
+GET /api/users/{id}
+PUT /api/users/{id}
+DELETE /api/users/{id}
+🎨 Frontend
+Tech Stack
+React
+TypeScript
+Tailwind CSS
+shadcn/ui
+Sonner (toasts & notifications)
+UI Architecture
+code
+Yaml
+components/
+├─ atoms/
+├─ molecules/
+├─ organisms/
+└─ ui/ (design system)
 
-        .code-block {
-            background-color: var(--color-code-bg);
-            color: var(--color-code-text);
-            padding: 1rem;
-            padding-top: 2.5rem; /* Space for the copy button */
-            border-radius: 6px;
-            overflow-x: auto;
-            font-family: var(--font-mono);
-            font-size: 0.875rem;
-            position: relative;
-        }
-        
-        .code-block code {
-            all: unset; /* Remove default code styling inside pre */
-            font-size: 0.875rem;
-            line-height: 1.4;
-            display: block;
-        }
+pages/
+└─ UsersPage.tsx
 
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--color-copy-bg);
-            color: var(--color-code-text);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-family: var(--font-main);
-            transition: background-color 0.2s, opacity 0.2s;
-            opacity: 0.8;
-            user-select: none;
-        }
+state/
+└─ user.store.ts (state + side effects)
 
-        .copy-button:hover {
-            background-color: var(--color-copy-hover);
-            opacity: 1;
-        }
-        
-        /* Inline Code */
-        :not(.code-block) > code {
-            background-color: #f1f5f9; /* Tailwind gray-100 */
-            color: #b91c1c; /* Tailwind red-700 */
-            padding: 0.2em 0.4em;
-            border-radius: 4px;
-            font-family: var(--font-mono);
-            font-size: 0.85em;
-        }
+services/
+└─ user.service.ts (API calls only)
 
-        /* --- Architecture Diagram (Specific Pre) --- */
-        .architecture-diagram {
-            white-space: pre;
-            background-color: #f1f5f9; /* Light grey block */
-            color: var(--color-text);
-            border: 1px solid var(--color-border);
-            padding: 1rem;
-            border-radius: 6px;
-            font-family: var(--font-mono);
-            font-size: 0.95rem;
-        }
-        
-        /* --- Footer Quote --- */
-        .quote {
-            text-align: center;
-            margin-top: 40px;
-            font-style: italic;
-            color: #6b7280; /* Tailwind gray-500 */
-            font-size: 0.95rem;
-        }
-    </style>
-    <script>
-        function copyCode(button) {
-            const codeBlock = button.previousElementSibling;
-            const codeToCopy = codeBlock.textContent || codeBlock.innerText;
+api/
+├─ endpoints.ts
+└─ http.ts
+UI Features
+Sidebar-based admin layout
+Responsive (desktop / tablet / mobile)
+Search & filtering
+Add / Edit / Delete employees
+Accessible components
+Clean spacing & layout discipline
+🐳 Running with Docker
+Prerequisites
+Docker
+Docker Compose
+Start the full stack
+code
+Bash
+docker compose up --build
+Services started:
 
-            navigator.clipboard.writeText(codeToCopy).then(() => {
-                const originalText = button.textContent;
-                button.textContent = "Copied!";
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Could not copy text: ', err);
-                alert('Failed to copy code. Please copy manually.');
-            });
-        }
+Rust API + frontend server
 
-        // Initialize on DOMContentLoaded to attach listeners to all buttons
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.copy-button').forEach(button => {
-                button.addEventListener('click', () => copyCode(button));
-            });
-        });
-    </script>
-</head>
-<body>
-    <div class="container">
+PostgreSQL database
 
-        <!-- ========================= -->
-        <!--  Employee Management System  -->
-        <!-- ========================= -->
+Backend runs on:
 
-        <header class="header">
-            <h1 id="employee-management-system"><span class="emoji">🧑‍💼</span> Employee Management System</h1>
-
-            <p class="subtitle">
-                <b>A production-ready full-stack Employee Management System</b><br>
-                Built with a <b>Rust server-side backend</b> and a modern React frontend.
-            </p>
-
-            <p class="badges">
-                <img src="https://img.shields.io/badge/Backend-Rust-orange?style=flat-square" alt="Backend: Rust" />
-                <img src="https://img.shi
+http://localhost:8000
+🗄 Database
+PostgreSQL
+Managed via SQL migrations
+UUID primary keys
+Timestamped records
+Example table:
+code
+SQL
+users (
+  id UUID PRIMARY KEY,
+  username TEXT,
+  email TEXT,
+  password_hash TEXT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+🔒 Design Principles
+Server-side first (no frontend proxy hacks)
+Same-origin architecture
+Strict separation of concerns
+No business logic in UI
+No SQL in handlers
+No API calls in components
+This codebase is designed to scale beyond CRUD into:
+Roles & permissions
+Audit logs
+Organization hierarchies
+HR workflows
+🚀 Future Enhancements
+Authentication & RBAC
+Pagination & filtering at DB level
+Activity audit logs
+WebSockets for live updates
+Admin role management
+CI/CD pipeline
+📄 License
+MIT License
+Use freely for learning, internal tools, or production systems.
+✨ Author
+Built with an emphasis on correct architecture, not shortcuts.
+Rust on the server. Clean UI on the client. No compromises.
+<p align="center"> <sub>“Good systems are boring. Boring means predictable. Predictable means scalable.”</sub> </p>
+```
