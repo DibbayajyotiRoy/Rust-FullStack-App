@@ -51,7 +51,7 @@ export function BirthdayCarousel() {
         twoWeeksFromNow.setDate(today.getDate() + 14);
 
         const filtered = MOCK_EMPLOYEES.filter((emp) => {
-            const birthdayThisYear = new Date(today.getFullYear(), emp.birthday.getMonth(), emp.birthday.getDate());
+
             // Handle birthdays at the end of the year wrapping to next year if needed, 
             // but for simplicity in this mock, we assume current year context mostly.
             // A more robust check would normalize years.
