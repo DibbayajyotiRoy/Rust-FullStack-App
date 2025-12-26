@@ -59,6 +59,18 @@
 
 :root {
   --radius: 0.5rem;
+
+  /* Global Typography Variables */
+  --text-header-weight: 700;
+  --text-header-tracking: -0.025em;
+
+  --text-secondary-size: 0.75rem;
+  /* text-xs */
+  --text-secondary-weight: 400;
+
+  --text-normal-size: 0.875rem;
+  /* text-sm */
+  --text-normal-weight: 500;
 }
 
 /* Dark mode adjustments */
@@ -70,35 +82,48 @@
   --destructive: oklch(0.704 0.191 22.216);
 }
 
+@layer utilities {
+  .type-header {
+    font-weight: var(--text-header-weight);
+    letter-spacing: var(--text-header-tracking);
+    color: var(--color-foreground);
+  }
+
+  .type-secondary {
+    font-size: var(--text-secondary-size);
+    font-weight: var(--text-secondary-weight);
+    color: var(--muted-foreground);
+  }
+
+  .type-normal {
+    font-size: var(--text-normal-size);
+    font-weight: var(--text-normal-weight);
+    color: var(--color-foreground);
+  }
+}
+
 @layer base {
   * {
     @apply border-border/50 outline-ring/50;
   }
 
   body {
-    @apply antialiased;
+    @apply antialiased bg-background text-foreground;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+  }
 
-    /* Custom Scrollbar Styles */
-    &::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
+  /* Global Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-    &::-webkit-scrollbar-thumb {
-      background: var(--color-border);
-      border-radius: 9999px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-      background: var(--muted-foreground);
-    }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border/40 hover:bg-border/80 transition-colors rounded-full;
   }
 }

@@ -1,14 +1,4 @@
-<!-- 
-NOTE: Standard Markdown files (.md) do not natively contain CSS. 
-The styling (CSS) for this document is applied by the renderer (e.g., GitHub, VS Code preview, or a website generator) 
-that converts the Markdown to HTML. Below is the full content in pure Markdown format. 
--->
-
-<!-- ========================= -->
-<!--  Employee Management System  -->
-<!-- ========================= -->
-
-<h1 align="center">🧑‍💼 Employee Management System</h1>
+# 🧑‍💼 Employee Management System
 
 <p align="center">
   <b>A production-ready full-stack Employee Management System</b><br/>
@@ -27,13 +17,12 @@ that converts the Markdown to HTML. Below is the full content in pure Markdown f
 
 ## 📌 Overview
 
-This project is a **full-stack Employee Management System (EMS)** designed with
-**scalability, maintainability, and production-readiness** in mind.
+This project is a **full-stack Employee Management System (EMS)** designed with **scalability, maintainability, and production-readiness** in mind.
 
-- **Backend**: Rust (Axum) – server-side rendered API & static frontend serving  
-- **Frontend**: React + Tailwind + shadcn/ui  
-- **Database**: PostgreSQL  
-- **Deployment**: Docker & Docker Compose  
+- **Backend**: Rust (Axum) – server-side rendered API & static frontend serving
+- **Frontend**: React + Tailwind + shadcn/ui
+- **Database**: PostgreSQL
+- **Deployment**: Docker & Docker Compose
 
 The backend serves both:
 - REST APIs under `/api/*`
@@ -45,7 +34,7 @@ The backend serves both:
 
 ## 🏗 Architecture
 
-
+```mermaid
 graph TD
     A[Frontend: React + Tailwind + shadcn/ui] -->|same-origin| B(Rust Backend: Axum • SQLx • Tokio);
     B --> C[PostgreSQL DB];
@@ -55,121 +44,156 @@ graph TD
     end
     B -.-> B1
     B -.-> B2
-(Note: The above diagram uses the Mermaid syntax for modern Markdown viewers like GitHub.)
-⚙️ Backend (Rust – Server Side)
-Tech Stack
-Rust
-Axum – HTTP server & routing
-SQLx – async PostgreSQL driver
-Tokio – async runtime
-UUID – primary keys
-Docker – containerized runtime
-Key Backend Features
-Modular architecture (models, services, handlers, routes)
-Runtime-safe SQL (Docker-compatible, no compile-time DB dependency)
-Shared application state via AppState
-SPA fallback routing (client-side routing works on refresh)
-Clean REST API design
-Example API Routes
-code
-Code
-GET /api/users
-POST /api/users
-GET /api/users/{id}
-PUT /api/users/{id}
+```
+
+### ⚙️ Backend (Rust – Server Side)
+
+**Tech Stack**
+- **Rust**
+- **Axum** – HTTP server & routing
+- **SQLx** – async PostgreSQL driver
+- **Tokio** – async runtime
+- **UUID** – primary keys
+- **Docker** – containerized runtime
+
+**Key Backend Features**
+- Modular architecture (models, services, handlers, routes)
+- Runtime-safe SQL (Docker-compatible, no compile-time DB dependency)
+- Shared application state via `AppState`
+- SPA fallback routing (client-side routing works on refresh)
+- Clean REST API design
+
+**Example API Routes**
+```rust
+GET    /api/users
+POST   /api/users
+GET    /api/users/{id}
+PUT    /api/users/{id}
 DELETE /api/users/{id}
-🎨 Frontend
-Tech Stack
-React
-TypeScript
-Tailwind CSS
-shadcn/ui
-Sonner (toasts & notifications)
-UI Architecture
-code
-Yaml
+```
+
+### 🎨 Frontend
+
+**Tech Stack**
+- **React**
+- **TypeScript**
+- **Tailwind CSS**
+- **shadcn/ui**
+- **Sonner** (toasts & notifications)
+
+**UI Architecture**
+```yaml
 components/
-├─ atoms/
-├─ molecules/
-├─ organisms/
-└─ ui/ (design system)
+  ├─ atoms/
+  ├─ molecules/
+  ├─ organisms/
+  └─ ui/ (design system)
 
 pages/
-└─ UsersPage.tsx
+  └─ UserPage.tsx
 
 state/
-└─ user.store.ts (state + side effects)
+  └─ user.store.ts (state + side effects)
 
 services/
-└─ user.service.ts (API calls only)
+  └─ user.service.ts (API calls only)
 
 api/
-├─ endpoints.ts
-└─ http.ts
-UI Features
-Sidebar-based admin layout
-Responsive (desktop / tablet / mobile)
-Search & filtering
-Add / Edit / Delete employees
-Accessible components
-Clean spacing & layout discipline
-🐳 Running with Docker
-Prerequisites
-Docker
-Docker Compose
-Start the full stack
-code
-Bash
+  ├─ endpoints.ts
+  └─ http.ts
+```
+
+**UI Features**
+- Sidebar-based admin layout
+- Responsive (desktop / tablet / mobile)
+- Search & filtering
+- Add / Edit / Delete employees
+- Accessible components
+- Clean spacing & layout discipline
+
+---
+
+## 🐳 Running with Docker
+
+**Prerequisites**
+- Docker
+- Docker Compose
+
+**Start the full stack**
+```bash
 docker compose up --build
-Services started:
+```
 
-Rust API + frontend server
+**Services started:**
+1. Rust API + frontend server
+2. PostgreSQL database
 
-PostgreSQL database
-
-Backend runs on:
-
+**Backend runs on:**
 http://localhost:8000
-🗄 Database
-PostgreSQL
-Managed via SQL migrations
-UUID primary keys
-Timestamped records
-Example table:
-code
-SQL
-users (
+
+---
+
+## 🗄 Database
+
+- **PostgreSQL**
+- Managed via SQL migrations
+- UUID primary keys
+- Timestamped records
+
+**Example table:**
+```sql
+CREATE TABLE users (
   id UUID PRIMARY KEY,
   username TEXT,
   email TEXT,
   password_hash TEXT,
   created_at TIMESTAMP,
   updated_at TIMESTAMP
-)
-🔒 Design Principles
-Server-side first (no frontend proxy hacks)
-Same-origin architecture
-Strict separation of concerns
-No business logic in UI
-No SQL in handlers
-No API calls in components
-This codebase is designed to scale beyond CRUD into:
-Roles & permissions
-Audit logs
-Organization hierarchies
-HR workflows
-🚀 Future Enhancements
-Authentication & RBAC
-Pagination & filtering at DB level
-Activity audit logs
-WebSockets for live updates
-Admin role management
-CI/CD pipeline
-📄 License
-MIT License
-Use freely for learning, internal tools, or production systems.
-✨ Author
-Built with an emphasis on correct architecture, not shortcuts.
-Rust on the server. Clean UI on the client. No compromises.
-<p align="center"> <sub>“Good systems are boring. Boring means predictable. Predictable means scalable.”</sub> </p>
+);
 ```
+
+---
+
+## 🔒 Design Principles
+
+- **Server-side first** (no frontend proxy hacks)
+- **Same-origin architecture**
+- **Strict separation of concerns**
+  - No business logic in UI
+  - No SQL in handlers
+  - No API calls in components
+
+This codebase is designed to scale beyond CRUD into:
+- Roles & permissions
+- Audit logs
+- Organization hierarchies
+- HR workflows
+
+---
+
+## 🚀 Future Enhancements
+
+- [ ] Authentication & RBAC
+- [ ] Pagination & filtering at DB level
+- [ ] Activity audit logs
+- [ ] WebSockets for live updates
+- [ ] Admin role management
+- [ ] CI/CD pipeline
+
+---
+
+## 📄 License
+
+**MIT License**
+Use freely for learning, internal tools, or production systems.
+
+---
+
+## ✨ Author
+
+Built with an emphasis on correct architecture, not shortcuts.
+**Rust on the server. Clean UI on the client. No compromises.**
+
+<p align="center">
+  <sub>“Good systems are boring. Boring means predictable. Predictable means scalable.”</sub>
+</p>

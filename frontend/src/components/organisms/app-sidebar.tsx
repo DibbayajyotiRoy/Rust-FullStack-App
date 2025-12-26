@@ -7,6 +7,9 @@ import {
   Calendar,
   Settings,
   PanelLeftIcon,
+  FileText,
+  CalendarDays,
+  FileBarChart,
 } from "lucide-react"
 
 import {
@@ -38,6 +41,21 @@ const NAV_ITEMS = [
     href: "/attendance",
   },
   {
+    title: "Leave",
+    icon: CalendarDays,
+    href: "/leave",
+  },
+  {
+    title: "Documents",
+    icon: FileText,
+    href: "/documents",
+  },
+  {
+    title: "Reports",
+    icon: FileBarChart,
+    href: "/reports",
+  },
+  {
     title: "Roles & Access",
     icon: Shield,
     href: "/roles",
@@ -57,10 +75,10 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
   const { colors } = useTheme()
   const location = useLocation()
   const { state, toggleSidebar } = useSidebar()
-  
+
   return (
-    <Sidebar 
-      collapsible="icon" 
+    <Sidebar
+      collapsible="icon"
       side={side}
       {...props}
       style={{ backgroundColor: colors.sidebar }}
@@ -71,15 +89,15 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
           {/* Logo - Always visible when expanded, shows as icon when collapsed */}
           <div
             className={cn(
-              "flex items-center gap-2 transition-all duration-200",
-              state === "collapsed" 
-                ? "justify-center group-hover/logo-toggle:opacity-0" 
+              "flex items-center gap-2 transition-all duration-300 ease-in-out",
+              state === "collapsed"
+                ? "justify-center"
                 : "opacity-100"
             )}
           >
-            <div 
-              className="h-8 w-8 rounded-lg flex items-center justify-center font-bold"
-              style={{ 
+            <div
+              className="h-8 w-8 rounded-lg flex items-center justify-center font-bold shadow-sm transition-transform duration-200 group-hover/logo-toggle:scale-105"
+              style={{
                 backgroundColor: '#5865F2',
                 color: '#FFFFFF'
               }}
@@ -89,7 +107,7 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="h-5 w-5"
@@ -99,9 +117,9 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
               </svg>
             </div>
             {state === "expanded" && (
-              <div className="flex flex-col leading-none">
-                <span className="font-semibold text-sm" style={{ color: colors.foreground }}>EMS</span>
-                <span className="text-xs" style={{ color: colors.foreground, opacity: 0.6 }}>
+              <div className="flex flex-col leading-none animate-in fade-in slide-in-from-left-2 duration-300">
+                <span className="font-semibold text-sm tracking-tight" style={{ color: colors.foreground }}>EMS</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: colors.foreground, opacity: 0.6 }}>
                   Admin Panel
                 </span>
               </div>
@@ -139,17 +157,23 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
         <SidebarMenu className="px-2">
           {NAV_ITEMS.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton 
-                asChild 
+              <SidebarMenuButton
+                asChild
                 tooltip={item.title}
                 isActive={location.pathname === item.href}
+                className={cn(
+                  "transition-all duration-200 ease-in-out h-9",
+                  location.pathname === item.href
+                    ? "bg-sidebar-accent shadow-sm translate-x-1"
+                    : "hover:translate-x-1 hover:bg-sidebar-accent/50"
+                )}
               >
                 <Link
                   to={item.href}
                   className="flex items-center gap-3"
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
+                  <item.icon className={cn("h-4 w-4 transition-colors", location.pathname === item.href ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("font-medium transition-colors", location.pathname === item.href ? "text-foreground" : "text-muted-foreground")}>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
