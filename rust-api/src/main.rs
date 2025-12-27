@@ -160,6 +160,8 @@ mod routes;
 mod services;
 mod state;
 mod utils;
+mod events;
+
 
 #[tokio::main]
 async fn main() {

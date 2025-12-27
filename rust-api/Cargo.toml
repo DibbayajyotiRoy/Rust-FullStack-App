@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 # Web framework
-axum = "0.8"
+axum = { version = "0.8", features = ["ws"] }
 
 # Async runtime
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
@@ -31,3 +31,4 @@ sqlx = { version = "0.8", features = [
 
 # CORS Middleware
 tower-http = { version = "0.5", features = ["cors", "fs"] }
+futures-util = "0.3.31"

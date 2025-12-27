@@ -4,7 +4,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { useSettings } from "@/contexts/settings.context"
 import { useTheme } from "@/contexts/theme.context"
 import { AppSidebar } from "@/components/organisms/app-sidebar"
-import { Bell } from "lucide-react"
+import { Bell, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useNotifications } from "@/hooks/use-notifications"
+import { formatRelativeTime } from "@/lib/date-utils"
 
 interface DynamicLayoutProps {
   children?: React.ReactNode
@@ -22,6 +24,9 @@ interface DynamicLayoutProps {
 export function DynamicLayout({ children }: DynamicLayoutProps) {
   const { sidebarPosition } = useSettings()
   const { colors } = useTheme()
+  const { notifications, isConnected, error } = useNotifications()
+
+  const notificationCount = notifications.length
 
   return (
     <div
@@ -60,32 +65,44 @@ export function DynamicLayout({ children }: DynamicLayoutProps) {
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
                         <Bell className="h-4 w-4" />
-                        <span className="absolute top-1.5 right-2 h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse" />
+                        {notificationCount > 0 && (
+                          <span className="absolute top-1.5 right-2 h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse" />
+                        )}
                         <span className="sr-only">Notifications</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-80">
-                      <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                      <DropdownMenuLabel className="flex items-center justify-between">
+                        <span>Notifications</span>
+                        {!isConnected && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Connecting...
+                          </span>
+                        )}
+                      </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <div className="max-h-[300px] overflow-y-auto">
-                        <DropdownMenuItem className="cursor-pointer">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-xs">New employee added</span>
-                            <span className="text-[10px] text-muted-foreground">Just now</span>
+                        {error && (
+                          <div className="px-2 py-4 text-center text-xs text-red-500">
+                            {error}
                           </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-xs">System maintenance scheduled</span>
-                            <span className="text-[10px] text-muted-foreground">1 hour ago</span>
+                        )}
+                        {!error && notifications.length === 0 && (
+                          <div className="px-2 py-8 text-center text-xs text-muted-foreground">
+                            No notifications yet
                           </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-medium text-xs">Birthday reminders</span>
-                            <span className="text-[10px] text-muted-foreground">2 hours ago</span>
-                          </div>
-                        </DropdownMenuItem>
+                        )}
+                        {!error && notifications.map((notification) => (
+                          <DropdownMenuItem key={notification.id} className="cursor-pointer">
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium text-xs">{notification.message}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {formatRelativeTime(notification.created_at)}
+                              </span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>

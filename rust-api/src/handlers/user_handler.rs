@@ -15,9 +15,19 @@ pub async fn create_user(
     State(state): State<AppState>,
     Json(payload): Json<CreateUserPayload>,
 ) -> Result<(StatusCode, Json<User>), StatusCode> {
+    let username = payload.username.clone();
     let user = user_service::create_user(&state.db, payload)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    // Trigger notification
+    let _ = crate::services::notification_service::create_notification(
+        &state.db,
+        &state.notifications,
+        "USER_CREATED",
+        &format!("New user added: {}", username),
+        Some(user.id),
+    ).await;
 
     Ok((StatusCode::CREATED, Json(user)))
 }
