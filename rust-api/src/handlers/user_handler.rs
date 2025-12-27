@@ -69,13 +69,30 @@ pub async fn delete_user(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, StatusCode> {
+    // Fetch user first to get the username for the notification
+    let user = match user_service::get_user(&state.db, id).await {
+        Ok(u) => u,
+        Err(_) => return Err(StatusCode::NOT_FOUND),
+    };
+
+    let username = user.username.clone();
+
     let affected = user_service::delete_user(&state.db, id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     if affected == 0 {
-        Err(StatusCode::NOT_FOUND)
-    } else {
-        Ok(StatusCode::NO_CONTENT)
+        return Err(StatusCode::NOT_FOUND);
     }
+
+    // Trigger notification
+    let _ = crate::services::notification_service::create_notification(
+        &state.db,
+        &state.notifications,
+        "USER_DELETED",
+        &format!("User deleted: {}", username),
+        None,
+    ).await;
+
+    Ok(StatusCode::NO_CONTENT)
 }

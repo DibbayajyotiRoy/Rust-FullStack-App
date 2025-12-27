@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { Notification, NotificationWSMessage } from "@/types/notification";
+import type { Notification } from "@/types/notification";
 
 interface UseNotificationsReturn {
     notifications: Notification[];
+    unreadCount: number;
     isConnected: boolean;
     error: string | null;
+    markAsRead: (id: string) => Promise<void>;
+    markAllAsRead: () => Promise<void>;
 }
 
 const WS_URL = `ws://${window.location.host}/ws/notifications`;
@@ -17,8 +20,12 @@ export function useNotifications(): UseNotificationsReturn {
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<number | null>(null);
 
+    const unreadCount = notifications.filter((n) => !n.is_read).length;
+
     const connect = useCallback(() => {
         try {
+            if (wsRef.current?.readyState === WebSocket.OPEN) return;
+
             const ws = new WebSocket(WS_URL);
             wsRef.current = ws;
 
@@ -30,10 +37,14 @@ export function useNotifications(): UseNotificationsReturn {
 
             ws.onmessage = (event) => {
                 try {
-                    const notification: NotificationWSMessage = JSON.parse(event.data);
-
-                    // Prepend new notification to the list
-                    setNotifications((prev) => [notification, ...prev]);
+                    const notification: Notification = JSON.parse(event.data);
+                    setNotifications((prev) => {
+                        // Check if notification already exists (useful for historical notes on reconnect)
+                        if (prev.some((n) => n.id === notification.id)) return prev;
+                        return [notification, ...prev].sort(
+                            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                        );
+                    });
                 } catch (err) {
                     console.error("Failed to parse notification:", err);
                 }
@@ -49,9 +60,7 @@ export function useNotifications(): UseNotificationsReturn {
                 setIsConnected(false);
                 wsRef.current = null;
 
-                // Attempt to reconnect after delay
                 reconnectTimeoutRef.current = window.setTimeout(() => {
-                    console.log("Attempting to reconnect...");
                     connect();
                 }, RECONNECT_DELAY);
             };
@@ -61,23 +70,48 @@ export function useNotifications(): UseNotificationsReturn {
         }
     }, []);
 
+    const markAsRead = async (id: string) => {
+        try {
+            const response = await fetch(`/api/notifications/${id}/read`, {
+                method: "POST",
+            });
+            if (response.ok) {
+                setNotifications((prev) =>
+                    prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+                );
+            }
+        } catch (err) {
+            console.error("Failed to mark notification as read:", err);
+        }
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            const response = await fetch("/api/notifications/read-all", {
+                method: "POST",
+            });
+            if (response.ok) {
+                setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+            }
+        } catch (err) {
+            console.error("Failed to mark all notifications as read:", err);
+        }
+    };
+
     useEffect(() => {
         connect();
-
-        // Cleanup on unmount
         return () => {
-            if (reconnectTimeoutRef.current) {
-                window.clearTimeout(reconnectTimeoutRef.current);
-            }
-            if (wsRef.current) {
-                wsRef.current.close();
-            }
+            if (reconnectTimeoutRef.current) window.clearTimeout(reconnectTimeoutRef.current);
+            if (wsRef.current) wsRef.current.close();
         };
     }, [connect]);
 
     return {
         notifications,
+        unreadCount,
         isConnected,
         error,
+        markAsRead,
+        markAllAsRead,
     };
 }

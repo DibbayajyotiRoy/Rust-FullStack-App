@@ -8,4 +8,5 @@ pub struct NotificationEvent {
     pub event_type: String,
     pub message: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
+    pub is_read: bool,
 }

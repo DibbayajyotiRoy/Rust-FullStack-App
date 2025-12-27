@@ -10,7 +10,8 @@ use crate::{
 
 pub fn create_app(state: AppState) -> Router {
     let api_router = Router::new()
-        .nest("/users", user_routes::routes());
+        .nest("/users", user_routes::routes())
+        .nest("/notifications", crate::routes::notification_routes::routes());
 
     let frontend_dir = std::path::PathBuf::from("./dist");
     let static_service = ServeDir::new(&frontend_dir)

@@ -14,7 +14,7 @@ pub async fn create_notification(
         r#"
         INSERT INTO notifications (event_type, message, actor_id)
         VALUES ($1, $2, $3)
-        RETURNING id, event_type, message, created_at
+        RETURNING id, event_type, message, created_at, is_read
         "#,
     )
     .bind(event_type)
@@ -35,7 +35,7 @@ pub async fn get_recent_notifications(
 ) -> sqlx::Result<Vec<NotificationEvent>> {
     sqlx::query_as::<_, NotificationEvent>(
         r#"
-        SELECT id, event_type, message, created_at
+        SELECT id, event_type, message, created_at, is_read
         FROM notifications
         ORDER BY created_at DESC
         LIMIT $1
@@ -44,4 +44,21 @@ pub async fn get_recent_notifications(
     .bind(limit)
     .fetch_all(pool)
     .await
+}
+
+pub async fn mark_as_read(pool: &PgPool, id: Uuid) -> sqlx::Result<()> {
+    sqlx::query(
+        "UPDATE notifications SET is_read = TRUE WHERE id = $1",
+    )
+    .bind(id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn mark_all_as_read(pool: &PgPool) -> sqlx::Result<()> {
+    sqlx::query("UPDATE notifications SET is_read = TRUE WHERE is_read = FALSE")
+        .execute(pool)
+        .await?;
+    Ok(())
 }

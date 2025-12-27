@@ -55,6 +55,10 @@
   --chart-3: #ffc658;
   --chart-4: #ff7300;
   --chart-5: #8dd1e1;
+
+  /* Global Danger/Destructive Color */
+  --danger: #FF4D4D;
+  --color-danger: var(--danger);
 }
 
 :root {

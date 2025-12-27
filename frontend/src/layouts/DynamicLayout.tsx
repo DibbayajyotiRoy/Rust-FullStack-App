@@ -24,9 +24,7 @@ interface DynamicLayoutProps {
 export function DynamicLayout({ children }: DynamicLayoutProps) {
   const { sidebarPosition } = useSettings()
   const { colors } = useTheme()
-  const { notifications, isConnected, error } = useNotifications()
-
-  const notificationCount = notifications.length
+  const { notifications, unreadCount, isConnected, error, markAsRead, markAllAsRead } = useNotifications()
 
   return (
     <div
@@ -65,20 +63,36 @@ export function DynamicLayout({ children }: DynamicLayoutProps) {
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
                         <Bell className="h-4 w-4" />
-                        {notificationCount > 0 && (
-                          <span className="absolute top-1.5 right-2 h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
                         )}
                         <span className="sr-only">Notifications</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-80">
                       <DropdownMenuLabel className="flex items-center justify-between">
-                        <span>Notifications</span>
-                        {!isConnected && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            Connecting...
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <span>Notifications</span>
+                          {!isConnected && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Connecting...
+                            </span>
+                          )}
+                        </div>
+                        {unreadCount > 0 && (
+                          <Button
+                            variant="ghost"
+                            className="h-auto p-0 text-[10px] hover:bg-transparent underline underline-offset-2"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              markAllAsRead()
+                            }}
+                          >
+                            Mark all as read
+                          </Button>
                         )}
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
@@ -94,13 +108,26 @@ export function DynamicLayout({ children }: DynamicLayoutProps) {
                           </div>
                         )}
                         {!error && notifications.map((notification) => (
-                          <DropdownMenuItem key={notification.id} className="cursor-pointer">
-                            <div className="flex flex-col gap-1">
-                              <span className="font-medium text-xs">{notification.message}</span>
+                          <DropdownMenuItem
+                            key={notification.id}
+                            className="cursor-pointer relative pr-8"
+                            onClick={() => {
+                              if (!notification.is_read) {
+                                markAsRead(notification.id)
+                              }
+                            }}
+                          >
+                            <div className="flex flex-col gap-1 w-full">
+                              <span className={`text-xs ${notification.is_read ? 'text-muted-foreground' : 'font-semibold'}`}>
+                                {notification.message}
+                              </span>
                               <span className="text-[10px] text-muted-foreground">
                                 {formatRelativeTime(notification.created_at)}
                               </span>
                             </div>
+                            {!notification.is_read && (
+                              <span className="absolute right-4 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-600" />
+                            )}
                           </DropdownMenuItem>
                         ))}
                       </div>
