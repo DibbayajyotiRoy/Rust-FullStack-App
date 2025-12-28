@@ -26,9 +26,9 @@ This project is a **full-stack Employee Management System (EMS)** designed with 
 
 The backend serves both:
 - REST APIs under `/api/*`
-- The compiled frontend SPA from the same origin
+- The compiled frontend SPA
 
-👉 **No CORS. No proxy hacks. Clean architecture.**
+👉 **Configurable CORS support for modular development.**
 
 ---
 
@@ -36,11 +36,11 @@ The backend serves both:
 
 ```mermaid
 graph TD
-    A[Frontend: React + Tailwind + shadcn/ui] -->|same-origin| B(Rust Backend: Axum • SQLx • Tokio);
+    A["Frontend: React + Tailwind + shadcn/ui"] -->|API Requests| B(Rust Backend: Axum • SQLx • Tokio);
     B --> C[PostgreSQL DB];
     subgraph Rust Backend
-        B1[/api/* → REST endpoints]
-        B2[/* → React SPA]
+        B1["/api/* → REST endpoints"]
+        B2["/* → React SPA"]
     end
     B -.-> B1
     B -.-> B2
