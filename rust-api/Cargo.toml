@@ -32,3 +32,5 @@ sqlx = { version = "0.8", features = [
 # CORS Middleware
 tower-http = { version = "0.5", features = ["cors", "fs"] }
 futures-util = "0.3.31"
+bcrypt = "0.15"
+rand = "0.8"

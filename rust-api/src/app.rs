@@ -14,6 +14,8 @@ use crate::{
 pub fn create_app(state: AppState) -> Router {
     let api_router = Router::new()
         .nest("/users", user_routes::routes())
+        .nest("/auth", crate::routes::auth_routes::routes())
+        .nest("/management", crate::routes::policy_routes::routes())
         .nest("/notifications", crate::routes::notification_routes::routes());
 
     // CORS configuration
@@ -26,12 +28,15 @@ pub fn create_app(state: AppState) -> Router {
         CorsLayer::new()
             .allow_origin(origins)
             .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-            .allow_headers(Any)
+            .allow_headers([axum::http::header::CONTENT_TYPE, axum::http::header::AUTHORIZATION, axum::http::header::ACCEPT])
+            .allow_credentials(true)
     } else {
         CorsLayer::new()
             .allow_origin(Any)
             .allow_methods(Any)
             .allow_headers(Any)
+            // Cannot use allow_credentials(true) with wildcard origin
+            .allow_credentials(false)
     };
 
     let frontend_dir = std::path::PathBuf::from("./dist");

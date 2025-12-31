@@ -13,12 +13,12 @@ pub fn routes() -> Router<AppState> {
         .route(
             "/",
             post(user_handler::create_user)
-                .get(user_handler::list_users),
+            .get(user_handler::list_users),
         )
         .route(
             "/{id}",
             get(user_handler::get_user)
-                .put(user_handler::update_user)
+            .put(user_handler::update_user)
                 .delete(user_handler::delete_user),
         )
 }

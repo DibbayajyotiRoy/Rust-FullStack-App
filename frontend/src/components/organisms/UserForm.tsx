@@ -27,7 +27,7 @@ export function UserForm({
     key: K,
     value: UserPayload[K]
   ) {
-    setFormData((prev) => ({ ...prev, [key]: value }))
+    setFormData((prev: UserPayload) => ({ ...prev, [key]: value }))
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -97,8 +97,8 @@ export function UserForm({
           {isSubmitting
             ? "Saving..."
             : initialData
-            ? "Update User"
-            : "Create User"}
+              ? "Update User"
+              : "Create User"}
         </Button>
       </div>
     </form>

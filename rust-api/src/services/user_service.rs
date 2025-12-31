@@ -16,6 +16,7 @@ pub async fn create_user(
             username,
             email,
             password_hash,
+            role_id,
             created_at,
             updated_at
         "#
@@ -35,6 +36,7 @@ pub async fn list_users(pool: &PgPool) -> sqlx::Result<Vec<User>> {
             username,
             email,
             password_hash,
+            role_id,
             created_at,
             updated_at
         FROM users
@@ -52,6 +54,7 @@ pub async fn get_user(pool: &PgPool, id: Uuid) -> sqlx::Result<User> {
             username,
             email,
             password_hash,
+            role_id,
             created_at,
             updated_at
         FROM users
@@ -81,6 +84,7 @@ pub async fn update_user(
             username,
             email,
             password_hash,
+            role_id,
             created_at,
             updated_at
         "#

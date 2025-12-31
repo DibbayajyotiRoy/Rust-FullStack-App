@@ -16,6 +16,7 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub password_hash: String,
+    pub role_id: Option<Uuid>,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
@@ -24,4 +25,10 @@ pub struct User {
 pub struct UpdateUserPayload {
     pub username: String,
     pub email: String,
+}
+
+#[derive(Deserialize)]
+pub struct LoginPayload {
+    pub identity: String, // username or email
+    pub password: String,
 }

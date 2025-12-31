@@ -1,10 +1,11 @@
 import * as React from "react"
-import { Outlet } from "react-router-dom"
+import { Outlet, useNavigate } from "react-router-dom"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { useSettings } from "@/contexts/settings.context"
 import { useTheme } from "@/contexts/theme.context"
+import { useAuth } from "@/contexts/auth.context"
 import { AppSidebar } from "@/components/organisms/app-sidebar"
-import { Bell, Loader2 } from "lucide-react"
+import { Bell, Loader2, LogOut, User as UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -25,6 +26,13 @@ export function DynamicLayout({ children }: DynamicLayoutProps) {
   const { sidebarPosition } = useSettings()
   const { colors } = useTheme()
   const { notifications, unreadCount, isConnected, error, markAsRead, markAllAsRead } = useNotifications()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login')
+  }
 
   return (
     <div
@@ -59,6 +67,7 @@ export function DynamicLayout({ children }: DynamicLayoutProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {/* Notifications Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
@@ -131,6 +140,28 @@ export function DynamicLayout({ children }: DynamicLayoutProps) {
                           </DropdownMenuItem>
                         ))}
                       </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* User Profile Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/20">
+                        <UserIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{user?.username || 'User'}</span>
+                          <span className="text-xs text-muted-foreground font-normal">{user?.email || 'No email'}</span>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500 focus:bg-red-50 cursor-pointer">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

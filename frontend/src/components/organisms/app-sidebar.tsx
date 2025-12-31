@@ -61,6 +61,11 @@ const NAV_ITEMS = [
     href: "/roles",
   },
   {
+    title: "Policies",
+    icon: FileText,
+    href: "/policies",
+  },
+  {
     title: "Settings",
     icon: Settings,
     href: "/settings",

@@ -25,10 +25,12 @@ export default function SettingsPage() {
   const { sidebarPosition, setSidebarPosition } = useSettings()
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Settings</h1>
-        <p className="text-muted-foreground">Customize your workspace appearance</p>
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-lg font-semibold type-header">Settings</h1>
+          <p className="type-secondary">Customize your workspace appearance</p>
+        </div>
       </div>
 
       {/* Theme Settings */}
@@ -49,11 +51,10 @@ export default function SettingsPage() {
               return (
                 <div
                   key={option.value}
-                  className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                    theme === option.value
+                  className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${theme === option.value
                       ? 'border-primary bg-primary/5'
                       : 'border-border hover:border-border/80'
-                  }`}
+                    }`}
                   onClick={() => setTheme(option.value)}
                 >
                   <div className="flex items-center justify-between">
