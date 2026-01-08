@@ -27,6 +27,7 @@ function UserPage() {
     loading,
     createUser,
     updateUser,
+    deleteUser,
   } = useUsers()
 
   const [search, setSearch] = useState("")
@@ -37,7 +38,6 @@ function UserPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
-  const { deleteUser } = useUsers()
 
   const filteredUsers = users.filter(
     (u) =>

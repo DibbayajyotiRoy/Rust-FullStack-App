@@ -1,10 +1,9 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth.context';
 import { Loader2 } from 'lucide-react';
 
 interface RoleGuardProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     requiredLevel?: number;
 }
 
@@ -36,5 +35,5 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ children, requiredLevel = 
         return <Navigate to="/dashboard" replace />;
     }
 
-    return <>{children}</>;
+    return children ? <>{children}</> : <Outlet />;
 };

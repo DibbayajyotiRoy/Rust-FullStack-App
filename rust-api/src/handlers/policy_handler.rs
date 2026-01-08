@@ -1,19 +1,19 @@
 use axum::{
     extract::{Path, State},
-    http::{StatusCode, HeaderMap, header},
+    http::StatusCode,
+    http::HeaderMap,
     Json,
 };
-use sqlx::{PgPool, Row};
 use uuid::Uuid;
 use serde::Deserialize;
+use serde_json::json;
 
 use crate::{
-    models::user::User,
-    models::user_role::{Policy, PolicyVersion, Role},
+    models::user_role::{Policy, PolicyRule, PolicyBinding, AuthContext},
     services::policy_service,
     services::auth_service,
-    services::user_service,
     state::app_state::AppState,
+    utils::auth::authorize_action,
 };
 
 #[derive(Deserialize)]
@@ -24,58 +24,29 @@ pub struct CreatePolicyPayload {
 }
 
 #[derive(Deserialize)]
-pub struct UpdatePolicyPayload {
-    pub name: String,
-    pub description: Option<String>,
+pub struct AddRulePayload {
+    pub effect: String,
+    pub resource: String,
+    pub action: String,
+    pub conditions: Option<serde_json::Value>,
 }
 
 #[derive(Deserialize)]
-pub struct AssignPolicyPayload {
-    pub role_id: Uuid,
+pub struct BindPolicyPayload {
+    pub subject_type: String, // "role" or "user"
+    pub subject_id: Uuid,
 }
 
 #[derive(Deserialize)]
-pub struct SetEditorPayload {
-    pub role_level: i32,
-}
-
-// Helper to get current user from session
-async fn get_current_user(state: &AppState, headers: &HeaderMap) -> Result<User, StatusCode> {
-    let cookie_header = headers.get(header::COOKIE)
-        .ok_or(StatusCode::UNAUTHORIZED)?;
-    
-    let cookie_str = cookie_header.to_str().map_err(|_| StatusCode::BAD_REQUEST)?;
-    let token = cookie_str.split(';')
-        .find(|s| s.trim().starts_with("session_token="))
-        .map(|s| s.trim().trim_start_matches("session_token="))
-        .ok_or(StatusCode::UNAUTHORIZED)?;
-
-    let session = auth_service::validate_session(&state.db, token)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::UNAUTHORIZED)?;
-
-    user_service::get_user(&state.db, session.user_id)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-}
-
-// Helper to check if user has a specific role level or better
-async fn check_role_level(state: &AppState, user: &User, required_level: i32) -> Result<(), StatusCode> {
-    if let Some(role_id) = user.role_id {
-        let roles = policy_service::list_roles(&state.db).await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-        if let Some(role) = roles.iter().find(|r| r.id == role_id) {
-            if role.level <= required_level {
-                return Ok(());
-            }
-        }
-    }
-    Err(StatusCode::FORBIDDEN)
+pub struct SimulatePayload {
+    pub action: String,
+    pub resource: String,
+    pub context: AuthContext,
 }
 
 pub async fn list_roles(
     State(state): State<AppState>,
-) -> Result<Json<Vec<Role>>, StatusCode> {
+) -> Result<Json<Vec<crate::models::user_role::Role>>, StatusCode> {
     let roles = policy_service::list_roles(&state.db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -96,8 +67,7 @@ pub async fn create_policy(
     State(state): State<AppState>,
     Json(payload): Json<CreatePolicyPayload>,
 ) -> Result<(StatusCode, Json<Policy>), StatusCode> {
-    let user = get_current_user(&state, &headers).await?;
-    check_role_level(&state, &user, 0).await?; // Level 0 can create
+    authorize_action(&state, &headers, "create", "policy").await?;
 
     let policy = policy_service::create_policy(
         &state.db,
@@ -106,53 +76,26 @@ pub async fn create_policy(
         payload.description.as_deref(),
     )
     .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    .map_err(|e| {
+        eprintln!("Create policy error: {:?}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
 
     Ok((StatusCode::CREATED, Json(policy)))
 }
 
-pub async fn update_policy(
+pub async fn activate_policy(
     headers: HeaderMap,
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-    Json(payload): Json<UpdatePolicyPayload>,
-) -> Result<Json<Policy>, StatusCode> {
-    let user = get_current_user(&state, &headers).await?;
-    
-    // Check if user is level 0 OR has specific editor permission
-    // For simplicity, we check level 0 first. 
-    // If not 0, we check policy_editor_permissions.
-    let is_admin = check_role_level(&state, &user, 0).await.is_ok();
-    
-    if !is_admin {
-        // Check editor permissions
-        // In a real app, this would be a single query
-        let roles = policy_service::list_roles(&state.db).await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-        let user_role = roles.iter().find(|r| r.id == user.role_id.unwrap()).ok_or(StatusCode::FORBIDDEN)?;
-        
-        let editors = sqlx::query(
-            "SELECT role_level FROM policy_editor_permissions WHERE policy_id = $1"
-        )
-        .bind(id)
-        .fetch_all(&state.db)
+) -> Result<StatusCode, StatusCode> {
+    authorize_action(&state, &headers, "activate", "policy").await?;
+
+    policy_service::activate_policy(&state.db, id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-        
-        if !editors.iter().any(|e| e.get::<i32, _>("role_level") >= user_role.level) {
-             return Err(StatusCode::FORBIDDEN);
-        }
-    }
 
-    let policy = policy_service::update_policy(
-        &state.db,
-        id,
-        &payload.name,
-        payload.description.as_deref(),
-    )
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(Json(policy))
+    Ok(StatusCode::OK)
 }
 
 pub async fn archive_policy(
@@ -160,8 +103,7 @@ pub async fn archive_policy(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<StatusCode, StatusCode> {
-    let user = get_current_user(&state, &headers).await?;
-    check_role_level(&state, &user, 0).await?;
+    authorize_action(&state, &headers, "archive", "policy").await?;
 
     policy_service::archive_policy(&state.db, id)
         .await
@@ -170,54 +112,150 @@ pub async fn archive_policy(
     Ok(StatusCode::NO_CONTENT)
 }
 
-pub async fn get_policy_versions(
+pub async fn delete_policy(
+    headers: HeaderMap,
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> Result<Json<Vec<PolicyVersion>>, StatusCode> {
-    let versions = policy_service::get_policy_versions(&state.db, id)
+) -> Result<StatusCode, StatusCode> {
+    authorize_action(&state, &headers, "delete", "policy").await?;
+
+    policy_service::delete_policy(&state.db, id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(versions))
+
+    Ok(StatusCode::NO_CONTENT)
 }
 
-pub async fn list_policies_for_role(
+pub async fn add_policy_rule(
+    headers: HeaderMap,
     State(state): State<AppState>,
-    Path(role_id): Path<Uuid>,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<AddRulePayload>,
+) -> Result<(StatusCode, Json<PolicyRule>), StatusCode> {
+    authorize_action(&state, &headers, "edit", "policy").await?;
+
+    let rule = policy_service::add_policy_rule(
+        &state.db,
+        id,
+        &payload.effect,
+        &payload.resource,
+        &payload.action,
+        payload.conditions,
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok((StatusCode::CREATED, Json(rule)))
+}
+
+pub async fn bind_policy(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(payload): Json<BindPolicyPayload>,
+) -> Result<(StatusCode, Json<PolicyBinding>), StatusCode> {
+    authorize_action(&state, &headers, "bind", "policy").await?;
+
+    let binding = policy_service::bind_policy(
+        &state.db,
+        id,
+        &payload.subject_type,
+        payload.subject_id,
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok((StatusCode::CREATED, Json(binding)))
+}
+
+pub async fn simulate_auth(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Json(payload): Json<SimulatePayload>,
+) -> Result<Json<serde_json::Value>, StatusCode> {
+    // Current user must have 'simulate' permission
+    let user = authorize_action(&state, &headers, "simulate", "auth").await?;
+
+    let decision = auth_service::authorize(
+        &state.db,
+        &user,
+        &payload.action,
+        &payload.resource,
+        &payload.context,
+    )
+    .await
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(json!({
+        "allowed": decision.allowed,
+        "reason": decision.reason,
+        "policy_id": decision.policy_id
+    })))
+}
+pub async fn list_policy_rules(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Vec<PolicyRule>>, StatusCode> {
+    let rules = policy_service::list_policy_rules(&state.db, id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(rules))
+}
+
+pub async fn list_policy_bindings(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Vec<PolicyBinding>>, StatusCode> {
+    let bindings = policy_service::list_policy_bindings(&state.db, id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(bindings))
+}
+
+pub async fn list_role_policies(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
 ) -> Result<Json<Vec<Policy>>, StatusCode> {
-    let policies = policy_service::list_policies_for_role(&state.db, role_id)
+    let policies = policy_service::list_policies_for_subject(&state.db, "role", id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(policies))
 }
 
-pub async fn assign_policy_to_role(
-    headers: HeaderMap,
+pub async fn list_user_policies(
     State(state): State<AppState>,
-    Path(policy_id): Path<Uuid>,
-    Json(payload): Json<AssignPolicyPayload>,
-) -> Result<StatusCode, StatusCode> {
-    let user = get_current_user(&state, &headers).await?;
-    check_role_level(&state, &user, 0).await?;
-
-    policy_service::assign_policy_to_role(&state.db, payload.role_id, policy_id)
+    Path(id): Path<Uuid>,
+) -> Result<Json<Vec<Policy>>, StatusCode> {
+    let policies = policy_service::list_policies_for_subject(&state.db, "user", id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(StatusCode::OK)
+    Ok(Json(policies))
 }
 
-pub async fn set_policy_editor_level(
+pub async fn remove_policy_rule(
     headers: HeaderMap,
     State(state): State<AppState>,
-    Path(policy_id): Path<Uuid>,
-    Json(payload): Json<SetEditorPayload>,
+    Path(id): Path<Uuid>,
 ) -> Result<StatusCode, StatusCode> {
-    let user = get_current_user(&state, &headers).await?;
-    check_role_level(&state, &user, 0).await?;
+    authorize_action(&state, &headers, "edit", "policy").await?;
 
-    policy_service::set_policy_editor_level(&state.db, policy_id, payload.role_level)
+    policy_service::remove_policy_rule(&state.db, id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-    Ok(StatusCode::OK)
+    Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn unbind_policy(
+    headers: HeaderMap,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<StatusCode, StatusCode> {
+    authorize_action(&state, &headers, "bind", "policy").await?;
+
+    policy_service::unbind_policy(&state.db, id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(StatusCode::NO_CONTENT)
 }

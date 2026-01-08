@@ -3,7 +3,8 @@ import { useSettings } from '@/contexts/settings.context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Palette, ArrowLeft, ArrowRight, Moon, Sun } from 'lucide-react'
+import { Palette, ArrowLeft, ArrowRight, Moon, Sun, Keyboard, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 const themeOptions = [
   {
@@ -23,6 +24,23 @@ const themeOptions = [
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { sidebarPosition, setSidebarPosition } = useSettings()
+  const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false)
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsShortcutModalOpen(false);
+    };
+    if (isShortcutModalOpen) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isShortcutModalOpen]);
+
+  const shortcuts = [
+    { key: 'Esc', desc: 'Close modals & dropdowns' },
+    { key: 'Enter', desc: 'Submit forms / confirm' },
+    { key: 'Ctrl + /', desc: 'Quick Search' },
+    { key: 'Alt + S', desc: 'Saves current draft' },
+    { key: 'Shift + ?', desc: 'This help menu' },
+  ]
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
@@ -52,8 +70,8 @@ export default function SettingsPage() {
                 <div
                   key={option.value}
                   className={`relative p-4 rounded-lg border-2 transition-all cursor-pointer ${theme === option.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-border/80'
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-border/80'
                     }`}
                   onClick={() => setTheme(option.value)}
                 >
@@ -112,6 +130,66 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Accessibility Settings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Keyboard className="h-5 w-5" />
+            <CardTitle>Keyboard Shortcuts</CardTitle>
+          </div>
+          <CardDescription>
+            Master the system productivity shortcuts
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            className="w-full flex justify-between items-center group"
+            onClick={() => setIsShortcutModalOpen(true)}
+          >
+            <span>View all shortcut keys</span>
+            <div className="flex gap-1">
+              <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono border">SHIFT</span>
+              <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono border">?</span>
+            </div>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Shortcut Modal */}
+      {isShortcutModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in duration-200"
+          onClick={() => setIsShortcutModalOpen(false)}
+        >
+          <div
+            className="bg-[var(--color-card)] border border-[var(--color-border)] rounded-3xl w-full max-w-sm shadow-2xl p-8 relative animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold tracking-tight">Shortcuts</h2>
+              <button onClick={() => setIsShortcutModalOpen(false)} className="p-1 hover:bg-[var(--color-muted)] rounded-lg text-[var(--color-muted-foreground)]">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {shortcuts.map((s, i) => (
+                <div key={i} className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--color-muted-foreground)]">{s.desc}</span>
+                  <div className="flex gap-1">
+                    {s.key.split(' + ').map((k, j) => (
+                      <span key={j} className="px-1.5 py-0.5 rounded bg-[var(--color-muted)] border border-[var(--color-border)] font-mono text-[10px] font-bold">
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

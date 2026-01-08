@@ -165,7 +165,7 @@ mod events;
 
 #[tokio::main]
 async fn main() {
-    // config::env::load();
+    config::env::load();
 
     let state = state::app_state::AppState::new().await;
     let app = app::create_app(state);

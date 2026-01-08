@@ -1227,6 +1227,7 @@ dependencies = [
  "axum",
  "bcrypt",
  "chrono",
+ "dotenvy",
  "futures-util",
  "rand 0.8.5",
  "serde",

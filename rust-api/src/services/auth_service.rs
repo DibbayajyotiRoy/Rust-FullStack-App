@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use chrono::{Utc, Duration};
 use crate::models::user::User;
-use crate::models::user_role::Session;
+use crate::models::user_role::{Session, AuthContext, Decision, PolicyRule};
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 
@@ -67,4 +67,71 @@ pub async fn delete_session(pool: &PgPool, token: &str) -> sqlx::Result<u64> {
     .await?;
 
     Ok(result.rows_affected())
+}
+
+/// Central authorization engine (PBAC)
+/// Evaluates policies bound to the user or their role.
+/// Priority: User Deny > User Allow > Role Deny > Role Allow > Default Deny
+pub async fn authorize(
+    pool: &PgPool,
+    user: &User,
+    action: &str,
+    resource: &str,
+    _context: &AuthContext,
+) -> sqlx::Result<Decision> {
+    // 1. Fetch rules from active policies bound to user or role
+    let rules = sqlx::query_as::<_, PolicyRule>(
+        r#"
+        SELECT pr.* 
+        FROM policy_rules pr
+        JOIN policies p ON pr.policy_id = p.id
+        JOIN policy_bindings pb ON pb.policy_id = p.id
+        WHERE p.status = 'active'
+        AND (
+            (pb.subject_type = 'user' AND pb.subject_id = $1)
+            OR (pb.subject_type = 'role' AND pb.subject_id = $2)
+        )
+        "#
+    )
+    .bind(user.id)
+    .bind(user.role_id)
+    .fetch_all(pool)
+    .await?;
+
+    let mut allowed = false;
+    let mut matching_policy_id = None;
+
+    // 2. Evaluation logic: Deny always wins, Allow is cumulative.
+    for rule in &rules {
+        let action_match = rule.action == "*" || rule.action == action;
+        let resource_match = rule.resource == "*" || rule.resource == resource;
+
+        if action_match && resource_match {
+            if rule.effect == "deny" {
+                return Ok(Decision {
+                    allowed: false,
+                    reason: format!("Explicitly denied by policy {}", rule.policy_id),
+                    policy_id: Some(rule.policy_id),
+                });
+            }
+            if rule.effect == "allow" {
+                allowed = true;
+                matching_policy_id = Some(rule.policy_id);
+            }
+        }
+    }
+
+    if allowed {
+        Ok(Decision {
+            allowed: true,
+            reason: "Access granted via policy".to_string(),
+            policy_id: matching_policy_id,
+        })
+    } else {
+        Ok(Decision {
+            allowed: false,
+            reason: "No matching allow policy found (Default Deny)".to_string(),
+            policy_id: None,
+        })
+    }
 }

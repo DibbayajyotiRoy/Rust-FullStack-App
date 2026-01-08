@@ -13,6 +13,8 @@ import SettingsPage from './pages/SettingsPage.tsx'
 import DashboardPage from './pages/DashboardPage.tsx'
 import RolesManagement from './pages/RolesManagement.tsx'
 import PoliciesManagement from './pages/PoliciesManagement.tsx'
+import PolicyDetailPage from './pages/PolicyDetailPage.tsx'
+import PermissionSimulator from './pages/PermissionSimulator.tsx'
 
 import LoginPage from './pages/LoginPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
@@ -63,12 +65,26 @@ const router = createBrowserRouter([
         element: <ReportsPage />
       },
       {
-        path: 'roles',
-        element: <RoleGuard requiredLevel={0}><RolesManagement /></RoleGuard>
-      },
-      {
-        path: 'policies',
-        element: <RoleGuard requiredLevel={0}><PoliciesManagement /></RoleGuard>
+        path: 'access-control',
+        element: <RoleGuard requiredLevel={0} />,
+        children: [
+          {
+            path: 'policies',
+            element: <PoliciesManagement />
+          },
+          {
+            path: 'policies/:id',
+            element: <PolicyDetailPage />
+          },
+          {
+            path: 'simulator',
+            element: <PermissionSimulator />
+          },
+          {
+            path: 'roles',
+            element: <RolesManagement />
+          }
+        ]
       },
       {
         path: 'settings',

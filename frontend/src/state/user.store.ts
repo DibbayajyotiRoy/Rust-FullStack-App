@@ -1,62 +1,74 @@
-import { useEffect, useState } from "react";
+import { create } from 'zustand';
 import { toast } from "sonner";
 import type { User, UserPayload } from "@/types/user";
 import { userService } from "@/services/user.service";
+import { useEffect } from 'react';
 
-export function useUsers() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+interface UserState {
+  users: User[];
+  loading: boolean;
+  fetchUsers: () => Promise<void>;
+  createUser: (payload: UserPayload) => Promise<void>;
+  updateUser: (id: string, payload: UserPayload) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
+}
 
-  async function fetchUsers() {
+export const useUserStore = create<UserState>((set, get) => ({
+  users: [],
+  loading: false,
+  fetchUsers: async () => {
+    if (get().loading) return;
     try {
-      setLoading(true);
-      setUsers(await userService.list());
+      set({ loading: true });
+      const users = await userService.list();
+      set({ users, loading: false });
     } catch {
       toast.error("Failed to load users");
-    } finally {
-      setLoading(false);
+      set({ loading: false });
     }
-  }
-
-  async function createUser(payload: UserPayload) {
+  },
+  createUser: async (payload) => {
     try {
       await userService.create(payload);
       toast.success("User created");
-      fetchUsers();
+      get().fetchUsers();
     } catch {
       toast.error("Failed to create user");
     }
-  }
-
-  async function updateUser(id: string, payload: UserPayload) {
+  },
+  updateUser: async (id, payload) => {
     try {
       await userService.update(id, payload);
       toast.success("User updated");
-      fetchUsers();
+      get().fetchUsers();
     } catch {
       toast.error("Failed to update user");
     }
-  }
-
-  async function deleteUser(id: string) {
+  },
+  deleteUser: async (id) => {
     try {
       await userService.delete(id);
       toast.success("User deleted");
-      fetchUsers();
+      get().fetchUsers();
     } catch {
       toast.error("Failed to delete user");
     }
-  }
+  },
+}));
+
+/**
+ * Hook for using users with automatic fetching.
+ * Maintains compatibility with previous implementation while using the global store.
+ */
+export function useUsers() {
+  const store = useUserStore();
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    // Only fetch if we haven't loaded yet
+    if (store.users.length === 0 && !store.loading) {
+      store.fetchUsers();
+    }
+  }, [store]);
 
-  return {
-    users,
-    loading,
-    createUser,
-    updateUser,
-    deleteUser,
-  };
+  return store;
 }

@@ -22,6 +22,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useTheme } from "@/contexts/theme.context"
+import { useAuth } from "@/contexts/auth.context"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
     title: "Employees",
     icon: Users,
     href: "/users",
+    requiredLevel: 0,
   },
   {
     title: "Attendance",
@@ -56,14 +58,24 @@ const NAV_ITEMS = [
     href: "/reports",
   },
   {
-    title: "Roles & Access",
+    title: "Access Control",
     icon: Shield,
-    href: "/roles",
-  },
-  {
-    title: "Policies",
-    icon: FileText,
-    href: "/policies",
+    href: "/access-control",
+    requiredLevel: 0,
+    items: [
+      {
+        title: "Policies",
+        href: "/access-control/policies",
+      },
+      {
+        title: "Simulator",
+        href: "/access-control/simulator",
+      },
+      {
+        title: "Roles",
+        href: "/access-control/roles",
+      },
+    ]
   },
   {
     title: "Settings",
@@ -80,6 +92,15 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
   const { colors } = useTheme()
   const location = useLocation()
   const { state, toggleSidebar } = useSidebar()
+  const { user } = useAuth()
+
+  // Simplified logic for superadmin check (matches RoleGuard.tsx)
+  const isSuperadmin = user?.role_id === '00000000-0000-0000-0000-000000000000'
+
+  const filteredItems = NAV_ITEMS.filter(item => {
+    if (item.requiredLevel === 0 && !isSuperadmin) return false
+    return true
+  })
 
   return (
     <Sidebar
@@ -160,28 +181,50 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
 
       <SidebarContent>
         <SidebarMenu className="px-2">
-          {NAV_ITEMS.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                tooltip={item.title}
-                isActive={location.pathname === item.href}
-                className={cn(
-                  "transition-all duration-200 ease-in-out h-9",
-                  location.pathname === item.href
-                    ? "bg-sidebar-accent shadow-sm translate-x-1"
-                    : "hover:translate-x-1 hover:bg-sidebar-accent/50"
-                )}
-              >
-                <Link
-                  to={item.href}
-                  className="flex items-center gap-3"
+          {filteredItems.map((item) => (
+            <React.Fragment key={item.title}>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  isActive={location.pathname === item.href || (item.items?.some(sub => location.pathname.startsWith(sub.href)))}
+                  className={cn(
+                    "transition-all duration-200 ease-in-out h-9",
+                    (location.pathname === item.href || (item.items?.some(sub => location.pathname.startsWith(sub.href))))
+                      ? "bg-sidebar-accent shadow-sm translate-x-1"
+                      : "hover:translate-x-1 hover:bg-sidebar-accent/50"
+                  )}
                 >
-                  <item.icon className={cn("h-4 w-4 transition-colors", location.pathname === item.href ? "text-primary" : "text-muted-foreground")} />
-                  <span className={cn("font-medium transition-colors", location.pathname === item.href ? "text-foreground" : "text-muted-foreground")}>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+                  <Link
+                    to={item.href}
+                    className="flex items-center gap-3"
+                  >
+                    <item.icon className={cn("h-4 w-4 transition-colors", (location.pathname === item.href || (item.items?.some(sub => location.pathname.startsWith(sub.href)))) ? "text-primary" : "text-muted-foreground")} />
+                    <span className={cn("font-medium transition-colors", (location.pathname === item.href || (item.items?.some(sub => location.pathname.startsWith(sub.href)))) ? "text-foreground" : "text-muted-foreground")}>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Nested Items */}
+              {item.items && (state === "expanded" || location.pathname.startsWith(item.href)) && (
+                <div className="ml-9 mt-1 mb-2 flex flex-col gap-1 border-l border-sidebar-border/50 pl-2">
+                  {item.items.map(subItem => (
+                    <Link
+                      key={subItem.title}
+                      to={subItem.href}
+                      className={cn(
+                        "text-xs font-medium py-1.5 px-2 rounded-md transition-all",
+                        location.pathname === subItem.href
+                          ? "bg-sidebar-accent text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
+                      )}
+                    >
+                      {subItem.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </React.Fragment>
           ))}
         </SidebarMenu>
       </SidebarContent>

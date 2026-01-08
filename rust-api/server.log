@@ -1,0 +1,13 @@
+   Compiling rust-api v0.1.0 (/home/roy/private/rust-fullstack/rust-api)
+warning: function `list_bindings_for_subject` is never used
+   --> src/services/policy_service.rs:176:14
+    |
+176 | pub async fn list_bindings_for_subject(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `rust-api` (bin "rust-api") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.78s
+     Running `target/debug/rust-api`
+🚀 Server running on http://localhost:8000
