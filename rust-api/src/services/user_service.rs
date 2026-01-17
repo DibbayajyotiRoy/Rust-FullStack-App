@@ -68,6 +68,28 @@ pub async fn get_user(pool: &PgPool, id: Uuid) -> sqlx::Result<User> {
     .await
 }
 
+pub async fn get_user_with_role(pool: &PgPool, id: Uuid) -> sqlx::Result<UserWithRole> {
+    sqlx::query_as::<_, UserWithRole>(
+        r#"
+        SELECT
+            u.id,
+            u.username,
+            u.email,
+            u.password_hash,
+            u.role_id,
+            r.name as role_name,
+            u.created_at,
+            u.updated_at
+        FROM users u
+        LEFT JOIN roles r ON u.role_id = r.id
+        WHERE u.id = $1
+        "#
+    )
+    .bind(id)
+    .fetch_one(pool)
+    .await
+}
+
 pub async fn update_user(
     pool: &PgPool,
     id: Uuid,
@@ -111,3 +133,21 @@ pub async fn delete_user(pool: &PgPool, id: Uuid) -> sqlx::Result<u64> {
 
     Ok(result.rows_affected())
 }
+
+pub async fn get_users_by_role_level_lte(
+    pool: &PgPool,
+    level: i32,
+) -> sqlx::Result<Vec<User>> {
+    sqlx::query_as::<_, User>(
+        r#"
+        SELECT u.*
+        FROM users u
+        JOIN roles r ON u.role_id = r.id
+        WHERE r.level <= $1
+        "#
+    )
+    .bind(level)
+    .fetch_all(pool)
+    .await
+}
+

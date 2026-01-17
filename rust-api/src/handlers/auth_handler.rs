@@ -61,7 +61,7 @@ pub async fn logout(
 pub async fn me(
     headers: HeaderMap,
     State(state): State<AppState>,
-) -> Result<Json<User>, StatusCode> {
+) -> Result<Json<crate::models::user::UserWithRole>, StatusCode> {
     let cookie_header = headers.get(header::COOKIE)
         .ok_or(StatusCode::UNAUTHORIZED)?;
     
@@ -76,7 +76,7 @@ pub async fn me(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
-    let user = user_service::get_user(&state.db, session.user_id)
+    let user = user_service::get_user_with_role(&state.db, session.user_id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 

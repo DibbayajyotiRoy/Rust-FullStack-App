@@ -35,13 +35,34 @@ pub async fn create_leave_request(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
+    // NOTIFICATION: Notify Admins (Level <= 1)
+    if let Ok(admins) = crate::services::user_service::get_users_by_role_level_lte(&state.db, 1).await {
+        // Fetch requester details for name
+        let requester_name = if let Ok(u) = crate::services::user_service::get_user(&state.db, user_id).await {
+            u.username
+        } else {
+            "Unknown User".to_string()
+        };
+
+        let msg = format!("New Leave Request from {}", requester_name);
+        for admin in admins {
+            let _ = crate::services::notification_service::create_notification(
+                &state.db,
+                &state.notifications,
+                "leave_request",
+                &msg,
+                Some(admin.id)
+            ).await;
+        }
+    }
+
     Ok((StatusCode::CREATED, Json(leave_request)))
 }
 
 pub async fn list_my_leave_requests(
     headers: HeaderMap,
     State(state): State<AppState>,
-) -> Result<Json<Vec<LeaveRequest>>, StatusCode> {
+) -> Result<Json<Vec<crate::models::leave_request::LeaveRequestWithApprover>>, StatusCode> {
     let user_id = get_user_id_from_headers(&state, &headers).await?;
 
     let requests = leave_service::list_leave_requests_for_user(&state.db, user_id)
@@ -54,7 +75,7 @@ pub async fn list_my_leave_requests(
 pub async fn list_all_leave_requests(
     headers: HeaderMap,
     State(state): State<AppState>,
-) -> Result<Json<Vec<LeaveRequest>>, StatusCode> {
+) -> Result<Json<Vec<crate::models::leave_request::LeaveRequestWithUser>>, StatusCode> {
     // Only managers/admins can view all leave requests
     authorize_action(&state, &headers, "read", "leave_request").await?;
 
@@ -101,9 +122,62 @@ pub async fn update_leave_status(
         return Err(StatusCode::BAD_REQUEST);
     }
 
-    let request = leave_service::update_leave_status(&state.db, id, &payload.status, approver_id)
+    let request_opt = leave_service::update_leave_status(&state.db, id, &payload.status, approver_id)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let request = match request_opt {
+        Some(r) => r,
+        None => {
+            // Already in that status, or ID not found. 
+            // Check if ID exists to be precise, but for now just return the current state if possible or NotFound if really not found.
+            // If we want to return the object even if not updated, we'd need another fetch.
+            // Simpler: If no update, just return OK (idempotent) and SKIP notifications.
+            // But we need to return the object.
+            return leave_service::get_leave_request(&state.db, id)
+                .await
+                .map(|r| Json(r))
+                .map_err(|_| StatusCode::NOT_FOUND);
+        }
+    };
+
+    // NOTIFICATION: Notify Requester
+    let msg_user = format!("Your leave request has been {}", payload.status);
+    let _ = crate::services::notification_service::create_notification(
+        &state.db,
+        &state.notifications,
+        "leave_status_update",
+        &msg_user,
+        Some(request.user_id)
+    ).await;
+
+    // NOTIFICATION: Notify Admins (transparency)
+    if let Ok(admins) = crate::services::user_service::get_users_by_role_level_lte(&state.db, 1).await {
+        // Get approver name
+        let approver_name = if let Ok(u) = crate::services::user_service::get_user(&state.db, approver_id).await {
+            u.username
+        } else {
+            "Admin".to_string()
+        };
+        
+        // Get requester name
+        let requester_name = if let Ok(u) = crate::services::user_service::get_user(&state.db, request.user_id).await {
+            u.username
+        } else {
+            "Unknown User".to_string()
+        };
+        
+        let msg_admin = format!("Leave request from {} was {} by {}", requester_name, payload.status, approver_name);
+        for admin in admins {
+             let _ = crate::services::notification_service::create_notification(
+                &state.db,
+                &state.notifications,
+                "leave_status_update",
+                &msg_admin,
+                Some(admin.id)
+            ).await;
+        }
+    }
 
     Ok(Json(request))
 }

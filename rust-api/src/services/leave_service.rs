@@ -12,8 +12,8 @@ pub async fn create_leave_request(
     sqlx::query_as::<_, LeaveRequest>(
         r#"
         INSERT INTO leave_requests (id, user_id, leave_type, start_date, end_date, reason, status)
-        VALUES ($1, $2, $3, $4, $5, $6, 'Pending')
-        RETURNING id, user_id, leave_type, start_date, end_date, reason, status, approved_by, created_at, updated_at
+        VALUES ($1, $2, $3::leave_type, $4, $5, $6, 'Pending')
+        RETURNING id, user_id, leave_type::TEXT, start_date, end_date, reason, status::TEXT, approved_by, created_at, updated_at
         "#
     )
     .bind(id)
@@ -29,13 +29,16 @@ pub async fn create_leave_request(
 pub async fn list_leave_requests_for_user(
     pool: &PgPool,
     user_id: Uuid,
-) -> sqlx::Result<Vec<LeaveRequest>> {
-    sqlx::query_as::<_, LeaveRequest>(
+) -> sqlx::Result<Vec<crate::models::leave_request::LeaveRequestWithApprover>> {
+    sqlx::query_as::<_, crate::models::leave_request::LeaveRequestWithApprover>(
         r#"
-        SELECT id, user_id, leave_type, start_date, end_date, reason, status, approved_by, created_at, updated_at
-        FROM leave_requests
-        WHERE user_id = $1
-        ORDER BY created_at DESC
+        SELECT 
+            l.id, l.user_id, l.leave_type::TEXT, l.start_date, l.end_date, l.reason, l.status::TEXT, 
+            l.approved_by, u.username as approver_name, l.created_at, l.updated_at
+        FROM leave_requests l
+        LEFT JOIN users u ON l.approved_by = u.id
+        WHERE l.user_id = $1
+        ORDER BY l.created_at DESC
         "#
     )
     .bind(user_id)
@@ -43,12 +46,13 @@ pub async fn list_leave_requests_for_user(
     .await
 }
 
-pub async fn list_all_leave_requests(pool: &PgPool) -> sqlx::Result<Vec<LeaveRequest>> {
-    sqlx::query_as::<_, LeaveRequest>(
+pub async fn list_all_leave_requests(pool: &PgPool) -> sqlx::Result<Vec<crate::models::leave_request::LeaveRequestWithUser>> {
+    sqlx::query_as::<_, crate::models::leave_request::LeaveRequestWithUser>(
         r#"
-        SELECT id, user_id, leave_type, start_date, end_date, reason, status, approved_by, created_at, updated_at
-        FROM leave_requests
-        ORDER BY created_at DESC
+        SELECT l.id, l.user_id, u.username, u.email, l.leave_type::TEXT, l.start_date, l.end_date, l.reason, l.status::TEXT, l.approved_by, l.created_at, l.updated_at
+        FROM leave_requests l
+        JOIN users u ON l.user_id = u.id
+        ORDER BY l.created_at DESC
         "#
     )
     .fetch_all(pool)
@@ -58,7 +62,7 @@ pub async fn list_all_leave_requests(pool: &PgPool) -> sqlx::Result<Vec<LeaveReq
 pub async fn get_leave_request(pool: &PgPool, id: Uuid) -> sqlx::Result<LeaveRequest> {
     sqlx::query_as::<_, LeaveRequest>(
         r#"
-        SELECT id, user_id, leave_type, start_date, end_date, reason, status, approved_by, created_at, updated_at
+        SELECT id, user_id, leave_type::TEXT, start_date, end_date, reason, status::TEXT, approved_by, created_at, updated_at
         FROM leave_requests
         WHERE id = $1
         "#
@@ -73,19 +77,19 @@ pub async fn update_leave_status(
     id: Uuid,
     status: &str,
     approved_by: Uuid,
-) -> sqlx::Result<LeaveRequest> {
+) -> sqlx::Result<Option<LeaveRequest>> {
     sqlx::query_as::<_, LeaveRequest>(
         r#"
         UPDATE leave_requests
-        SET status = $1, approved_by = $2, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $3
-        RETURNING id, user_id, leave_type, start_date, end_date, reason, status, approved_by, created_at, updated_at
+        SET status = $1::leave_status, approved_by = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3 AND status::TEXT != $1
+        RETURNING id, user_id, leave_type::TEXT, start_date, end_date, reason, status::TEXT, approved_by, created_at, updated_at
         "#
     )
     .bind(status)
     .bind(approved_by)
     .bind(id)
-    .fetch_one(pool)
+    .fetch_optional(pool)
     .await
 }
 
