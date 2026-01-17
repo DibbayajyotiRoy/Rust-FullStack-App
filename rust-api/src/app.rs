@@ -16,7 +16,13 @@ pub fn create_app(state: AppState) -> Router {
         .nest("/users", user_routes::routes())
         .nest("/auth", crate::routes::auth_routes::routes())
         .nest("/management", crate::routes::policy_routes::routes())
-        .nest("/notifications", crate::routes::notification_routes::routes());
+        .nest("/notifications", crate::routes::notification_routes::routes())
+        // Employee self-service routes
+        .nest("/leave-requests", crate::routes::leave_routes::routes())
+        .nest("/reports", crate::routes::report_routes::routes())
+        .nest("/payslips", crate::routes::payslip_routes::routes())
+        // Admin routes (payslip templates)
+        .nest("/admin/payslip-templates", crate::routes::template_routes::routes());
 
     // CORS configuration
     let cors = if let Ok(origins_str) = std::env::var("CORS_ALLOWED_ORIGINS") {

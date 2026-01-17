@@ -3,3 +3,7 @@ pub mod ws_notifications;
 pub mod notification_handler;
 pub mod auth_handler;
 pub mod policy_handler;
+pub mod leave_handler;
+pub mod report_handler;
+pub mod payslip_handler;
+pub mod template_handler;

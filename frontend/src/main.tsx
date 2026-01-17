@@ -15,6 +15,13 @@ import RolesManagement from './pages/RolesManagement.tsx'
 import PoliciesManagement from './pages/PoliciesManagement.tsx'
 import PolicyDetailPage from './pages/PolicyDetailPage.tsx'
 import PermissionSimulator from './pages/PermissionSimulator.tsx'
+import PayslipTemplateEditor from './pages/admin/PayslipTemplateEditor.tsx'
+
+// Employee pages
+import EmployeeDashboard from './pages/employee/EmployeeDashboard.tsx'
+import LeaveRequest from './pages/employee/LeaveRequest.tsx'
+import ReportSubmission from './pages/employee/ReportSubmission.tsx'
+import Payslips from './pages/employee/Payslips.tsx'
 
 import LoginPage from './pages/LoginPage.tsx'
 import NotFoundPage from './pages/NotFoundPage.tsx'
@@ -64,6 +71,28 @@ const router = createBrowserRouter([
         path: 'reports',
         element: <ReportsPage />
       },
+      // Employee self-service routes
+      {
+        path: 'employee',
+        children: [
+          {
+            path: 'dashboard',
+            element: <EmployeeDashboard />
+          },
+          {
+            path: 'leave-requests',
+            element: <LeaveRequest />
+          },
+          {
+            path: 'reports',
+            element: <ReportSubmission />
+          },
+          {
+            path: 'payslips',
+            element: <Payslips />
+          }
+        ]
+      },
       {
         path: 'access-control',
         element: <RoleGuard requiredLevel={0} />,
@@ -83,6 +112,10 @@ const router = createBrowserRouter([
           {
             path: 'roles',
             element: <RolesManagement />
+          },
+          {
+            path: 'payslip-templates',
+            element: <PayslipTemplateEditor />
           }
         ]
       },

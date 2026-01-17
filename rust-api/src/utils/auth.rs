@@ -54,3 +54,26 @@ pub async fn authorize_action(
 
     Ok(user)
 }
+
+/// Helper to extract user ID from session without authorization check
+/// Used for employee self-service endpoints
+pub async fn get_user_id_from_headers(
+    state: &AppState,
+    headers: &HeaderMap,
+) -> Result<uuid::Uuid, StatusCode> {
+    let cookie_header = headers.get(header::COOKIE)
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+    
+    let cookie_str = cookie_header.to_str().map_err(|_| StatusCode::BAD_REQUEST)?;
+    let token = cookie_str.split(';')
+        .find(|s| s.trim().starts_with("session_token="))
+        .map(|s| s.trim().trim_start_matches("session_token="))
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    let session = auth_service::validate_session(&state.db, token)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    Ok(session.user_id)
+}

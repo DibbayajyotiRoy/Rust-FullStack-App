@@ -1,6 +1,4 @@
 import { useState } from "react"
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTable } from "@/components/organisms/DataTable/DataTable"
 import { leaveColumns, type LeaveRequest } from "@/components/organisms/LeaveTable/columns"
@@ -32,10 +30,6 @@ export default function LeavePage() {
                     <h1 className="text-lg font-semibold type-header">Leave Management</h1>
                     <p className="type-secondary">Manage requests and balances</p>
                 </div>
-                <Button size="sm" className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    New Request
-                </Button>
             </div>
 
             {/* Balance Section (Mini Table styled as Grid for now) */}

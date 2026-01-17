@@ -4,6 +4,7 @@ export interface User {
     email: string;
     password_hash?: string;
     role_id?: string;
+    role_name?: string;
     created_at: string;
     updated_at: string;
 }

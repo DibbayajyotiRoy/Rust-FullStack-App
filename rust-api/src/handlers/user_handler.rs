@@ -4,9 +4,10 @@ use axum::{
     Json,
 };
 use uuid::Uuid;
+use bcrypt::{hash, DEFAULT_COST};
 
 use crate::{
-    models::user::{CreateUserPayload, UpdateUserPayload, User},
+    models::user::{CreateUserPayload, UpdateUserPayload, User, UserWithRole},
     services::user_service,
     state::app_state::AppState,
     utils::auth::authorize_action,
@@ -20,7 +21,18 @@ pub async fn create_user(
     authorize_action(&state, &headers, "create", "user").await?;
 
     let username = payload.username.clone();
-    let user = user_service::create_user(&state.db, payload)
+    
+    // Hash password before storage
+    let password_hash = hash(&payload.password_hash, DEFAULT_COST)
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let user_payload = CreateUserPayload {
+        username: payload.username.clone(),
+        email: payload.email.clone(),
+        password_hash,
+    };
+
+    let user = user_service::create_user(&state.db, user_payload)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -39,7 +51,7 @@ pub async fn create_user(
 pub async fn list_users(
     headers: HeaderMap,
     State(state): State<AppState>,
-) -> Result<Json<Vec<User>>, StatusCode> {
+) -> Result<Json<Vec<UserWithRole>>, StatusCode> {
     authorize_action(&state, &headers, "read", "user").await?;
 
     let users = user_service::list_users(&state.db)

@@ -4,12 +4,6 @@ import { AvatarBadge } from "@/components/ui/avatar-badge"
 import { StatusPill } from "@/components/ui/status-pill"
 import { Checkbox } from "@/components/ui/checkbox"
 
-// Extended type for UI purposes until backend is updated
-type ExtendedUser = User & {
-    role?: string;
-    is_active?: boolean;
-}
-
 interface UserColumnParams {
     selectedIds: Set<string>;
     onSelectRow: (id: string, checked: boolean) => void;
@@ -22,7 +16,7 @@ export const getUserColumns = ({
     onSelectRow,
     onSelectAll,
     isAllSelected
-}: UserColumnParams): Column<ExtendedUser>[] => [
+}: UserColumnParams): Column<User>[] => [
         {
             header: (
                 <div className="flex items-center justify-center w-[30px]" onClick={(e) => e.stopPropagation()}>
@@ -55,7 +49,7 @@ export const getUserColumns = ({
             header: "Role",
             cell: (user) => (
                 <div className="flex flex-col">
-                    <span className="font-medium">{user.role || "Employee"}</span>
+                    <span className="font-medium">{user.role_name || "Employee"}</span>
                     <span className="text-xs text-muted-foreground">{user.email}</span>
                 </div>
             ),
@@ -63,9 +57,9 @@ export const getUserColumns = ({
         },
         {
             header: "Status",
-            cell: (user) => (
-                <StatusPill variant={user.is_active !== false ? "success" : "neutral"}>
-                    {user.is_active !== false ? "Active" : "Inactive"}
+            cell: () => (
+                <StatusPill variant="success">
+                    Active
                 </StatusPill>
             ),
             className: "min-w-[100px]",
@@ -80,3 +74,4 @@ export const getUserColumns = ({
             className: "min-w-[120px]",
         },
     ]
+

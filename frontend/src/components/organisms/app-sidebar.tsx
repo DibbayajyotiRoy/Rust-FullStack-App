@@ -72,6 +72,10 @@ const NAV_ITEMS = [
         href: "/access-control/simulator",
       },
       {
+        title: "Email Templates",
+        href: "/access-control/payslip-templates",
+      },
+      {
         title: "Roles",
         href: "/access-control/roles",
       },
@@ -97,10 +101,25 @@ export function AppSidebar({ side = "left", ...props }: AppSidebarProps) {
   // Simplified logic for superadmin check (matches RoleGuard.tsx)
   const isSuperadmin = user?.role_id === '00000000-0000-0000-0000-000000000000'
 
-  const filteredItems = NAV_ITEMS.filter(item => {
-    if (item.requiredLevel === 0 && !isSuperadmin) return false
-    return true
-  })
+  const filteredItems = NAV_ITEMS.map(item => {
+    // Clone item to avoid mutation
+    const newItem = { ...item }
+
+    // Route swaps for Employees (non-superadmin)
+    if (!isSuperadmin) {
+      if (item.href === '/') newItem.href = '/employee/dashboard'
+      if (item.href === '/leave') newItem.href = '/employee/leave-requests'
+      if (item.href === '/reports') newItem.href = '/employee/reports'
+      // Hide Admin-only items check
+      if (item.requiredLevel === 0) return null
+    } else {
+      // Admin checks
+      if (item.requiredLevel === 0 && !isSuperadmin) return null
+    }
+
+    return newItem
+  }).filter(Boolean) as typeof NAV_ITEMS
+
 
   return (
     <Sidebar

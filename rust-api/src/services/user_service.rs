@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::models::user::{User, CreateUserPayload, UpdateUserPayload};
+use crate::models::user::{User, UserWithRole, CreateUserPayload, UpdateUserPayload};
 
 pub async fn create_user(
     pool: &PgPool,
@@ -28,18 +28,20 @@ pub async fn create_user(
     .await
 }
 
-pub async fn list_users(pool: &PgPool) -> sqlx::Result<Vec<User>> {
-    sqlx::query_as::<_, User>(
+pub async fn list_users(pool: &PgPool) -> sqlx::Result<Vec<UserWithRole>> {
+    sqlx::query_as::<_, UserWithRole>(
         r#"
         SELECT
-            id,
-            username,
-            email,
-            password_hash,
-            role_id,
-            created_at,
-            updated_at
-        FROM users
+            u.id,
+            u.username,
+            u.email,
+            u.password_hash,
+            u.role_id,
+            r.name as role_name,
+            u.created_at,
+            u.updated_at
+        FROM users u
+        LEFT JOIN roles r ON u.role_id = r.id
         "#
     )
     .fetch_all(pool)
