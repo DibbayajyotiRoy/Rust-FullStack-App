@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Palette, ArrowLeft, ArrowRight, Moon, Sun, Keyboard, X } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Activity, useState, useEffect } from 'react'
 
 const themeOptions = [
   {
@@ -158,7 +158,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Shortcut Modal */}
-      {isShortcutModalOpen && (
+      <Activity mode={isShortcutModalOpen ? 'visible' : 'hidden'}>
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in duration-200"
           onClick={() => setIsShortcutModalOpen(false)}
@@ -189,7 +189,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      )}
+      </Activity>
     </div>
   )
 }

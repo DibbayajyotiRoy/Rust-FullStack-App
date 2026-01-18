@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { Activity, useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTable, type Column } from "@/components/organisms/DataTable/DataTable"
 import { KeyValueGrid } from "@/components/molecules/KeyValueGrid"
@@ -217,33 +217,41 @@ export default function LeavePage() {
                     </TabsList>
                 </div>
 
-                <TabsContent value="requests" className="flex-1 mt-4">
-                    <DataTable
-                        data={data}
-                        columns={columns}
-                        total={data.length}
-                        page={1}
-                        pageSize={10}
-                    />
-                </TabsContent>
-                <TabsContent value="pending" className="flex-1 mt-4">
-                    <DataTable
-                        data={data.filter(d => d.status === "Pending")}
-                        columns={columns}
-                        total={data.filter(d => d.status === "Pending").length}
-                        page={1}
-                        pageSize={10}
-                    />
-                </TabsContent>
-                <TabsContent value="history" className="flex-1 mt-4">
-                    <DataTable
-                        data={data.filter(d => d.status !== "Pending")}
-                        columns={columns}
-                        total={data.filter(d => d.status !== "Pending").length}
-                        page={1}
-                        pageSize={10}
-                    />
-                </TabsContent>
+                <Activity mode={activeTab === 'requests' ? 'visible' : 'hidden'}>
+                    <TabsContent value="requests" forceMount className="flex-1 mt-4">
+                        <DataTable
+                            data={data}
+                            columns={columns}
+                            total={data.length}
+                            page={1}
+                            pageSize={10}
+                        />
+                    </TabsContent>
+                </Activity>
+
+                <Activity mode={activeTab === 'pending' ? 'visible' : 'hidden'}>
+                    <TabsContent value="pending" forceMount className="flex-1 mt-4">
+                        <DataTable
+                            data={data.filter(d => d.status === "Pending")}
+                            columns={columns}
+                            total={data.filter(d => d.status === "Pending").length}
+                            page={1}
+                            pageSize={10}
+                        />
+                    </TabsContent>
+                </Activity>
+
+                <Activity mode={activeTab === 'history' ? 'visible' : 'hidden'}>
+                    <TabsContent value="history" forceMount className="flex-1 mt-4">
+                        <DataTable
+                            data={data.filter(d => d.status !== "Pending")}
+                            columns={columns}
+                            total={data.filter(d => d.status !== "Pending").length}
+                            page={1}
+                            pageSize={10}
+                        />
+                    </TabsContent>
+                </Activity>
             </Tabs>
         </div>
     )
